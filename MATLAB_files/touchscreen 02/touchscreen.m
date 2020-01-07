@@ -92,8 +92,8 @@ for j = 2:numHiddenLayers
 end
 W{numHiddenLayers + 1} = wo;
 
-% W{1} = sort(sort(W{1},1),2);
-W{1} = sort(W{1},1);
+% % W{1} = sort(sort(W{1},1),2);
+% W{1} = sort(W{1},1);
 
 Winit = W; % save initialized weights
 
@@ -283,9 +283,9 @@ figure('Name','Connection weights', 'NumberTitle','off')
 for j = 1:numHiddenLayers+1
     im = W{j};
     im = rcm * (im - minim)/imspan;
-    if j == 1
+%     if j == 1
         im = im';
-    end
+%     end
     subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
 end
 cm = colormap(gray(64));

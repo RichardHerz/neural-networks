@@ -1,152 +1,152 @@
-% neural network example
-% based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
-% lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
-% with modifications 
-
-% with 4 hidden layers of 80 neurons each, usually get all good 
-% with 4 hidden layers of 60 neurons each, most of time get all good but
-% check
-
-% >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
-
-fprintf('------------ run separator ------------ \n')
-clear clc
-clear all 
-
-numInputNodes = 4;
-numOutputNodes = 4;
-numHiddenNodes = 60; % nodes per hidden layer
-numHiddenLayers = 4;
-
-% Learning rate alpha 
-alpha = 0.01;
-% Lambda is for regularization 
-lambda = 0.001;
-% Num of iterations 
-numepochs = 1e4;
-% size of batches of inputs to train at same time
-batchsize = 4; % e.g., 4 for 4 random examples per batch
-
-% answers in order of train_y indices
-answer = ["none" "diagonal" "vertical" "horizontal"]; 
-
-%% Training 
-
-% training inputs
-train_x = [1 0 0 1 % diag
-           0 1 1 0 % diag
-           1 1 0 0 % vert
-           0 0 1 1 % vert
-           1 0 1 0 % horiz
-           0 1 0 1 % horiz
-           1 1 1 1 % all dots
-           0 0 0 0 % no dots
-           0 1 1 1 % start 3 dots
-           1 0 1 1
-           1 1 0 1
-           1 1 1 0
-           1 0 0 0 % start single dots 
-           0 1 0 0
-           0 0 1 0
-           0 0 0 1];
-% put examples in columns
-train_x = train_x';
-
-% number of batches
-numbatches = floor( size(train_x, 2) / batchsize ); % need integer so floor
-           
-% training outputs as array
-train_y = [0 1 0 0 % diag
-           0 1 0 0 % diag
-           0 0 1 0 % vert
-           0 0 1 0 % vert
-           0 0 0 1 % horiz
-           0 0 0 1]; % horiz
-% put examples in columns
-train_y = train_y';
-% the rest of the output y's are the columns [1 0 0 0]'
-train_1 = ones(1,10);
-train_0 = zeros(3,10);
-train_10 = [train_1; train_0];
-% combine to full train_y
-train_y = [train_y train_10];
-
-% initialize node values
-ai = zeros(numInputNodes,batchsize);
-ah = zeros(numHiddenNodes,1);
-ao = zeros(numOutputNodes,batchsize);
-a = {ai};
-for j = 2:numHiddenLayers+1
-    a{j} = ah;
-end
-a{numHiddenLayers + 2} = ao;
-
-% initialize weights for numHiddenLayers & numHiddenNodes 
-% randomly in range -1 to +1
-wi = 2*rand(numHiddenNodes,numInputNodes) - 1;
-wh = 2*rand(numHiddenNodes,numHiddenNodes) - 1;
-wo = 2*rand(numOutputNodes,numHiddenNodes) - 1;
-W = {wi};
-for j = 2:numHiddenLayers
-    W{j} = wh;
-end
-W{numHiddenLayers + 1} = wo;
-
-% initialize biases
-initBias = 0;
-Bh = initBias * ones(numHiddenNodes,1);
-Bo = zeros(numOutputNodes,1);
-for j = 1:numHiddenLayers
-    B{j} = Bh;
-end
-B{numHiddenLayers+1} = Bo;
-dB = B;
-
-for j = 1 : numepochs
-    % randomly rearrange the training data for each epoch
-    % We keep the shuffled index in kk, so that the input and output could
-    % be matched together
-    kk = randperm(size(train_x, 2)); 
-
-    for b = 1 : numbatches 
-
-        a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
-        y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
-        
-        % forward propagation
-        for i = 2 : numHiddenLayers + 2
-            % without biases B
-            % a{i} = sigmaFunc( W{i-1}*a{i-1} );
-            % with biases B
-            a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
-        end
-        
-        % calculate the error and back-propagate error
-        d{numHiddenLayers + 1} = -(y - a{numHiddenLayers + 2}) .* ... 
-                      a{numHiddenLayers + 2} .* (1-a{numHiddenLayers + 2});
-        
-        for i = numHiddenLayers : -1 : 1
-            d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1-a{i+1});
-        end 
-
-        % update weights
-        % L2 regularization is used for W 
-        for i = 1 : numHiddenLayers+1
-            dW{i} = d{i} * a{i}';
-            W{i} = W{i} - alpha * (dW{i} + lambda * W{i}); 
-        end
-        
-%         % update biases added to nodes in hidden layers
-%         for i = 1 : numHiddenLayers
-%             dB{i} = sum(d{i},2);
-%             B{i} = B{i} - alpha * dB{i};
+% % neural network example
+% % based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
+% % with modifications 
+% 
+% % with 4 hidden layers of 80 neurons each, usually get all good 
+% % with 4 hidden layers of 60 neurons each, most of time get all good but
+% % check
+% 
+% % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
+% 
+% fprintf('------------ run separator ------------ \n')
+% clear clc
+% clear all 
+% 
+% numInputNodes = 4;
+% numOutputNodes = 4;
+% numHiddenNodes = 60; % nodes per hidden layer
+% numHiddenLayers = 4;
+% 
+% % Learning rate alpha 
+% alpha = 0.01;
+% % Lambda is for regularization 
+% lambda = 0.001;
+% % Num of iterations 
+% numepochs = 1e4;
+% % size of batches of inputs to train at same time
+% batchsize = 4; % e.g., 4 for 4 random examples per batch
+% 
+% % answers in order of train_y indices
+% answer = ["none" "diagonal" "vertical" "horizontal"]; 
+% 
+% %% Training 
+% 
+% % training inputs
+% train_x = [1 0 0 1 % diag
+%            0 1 1 0 % diag
+%            1 1 0 0 % vert
+%            0 0 1 1 % vert
+%            1 0 1 0 % horiz
+%            0 1 0 1 % horiz
+%            1 1 1 1 % all dots
+%            0 0 0 0 % no dots
+%            0 1 1 1 % start 3 dots
+%            1 0 1 1
+%            1 1 0 1
+%            1 1 1 0
+%            1 0 0 0 % start single dots 
+%            0 1 0 0
+%            0 0 1 0
+%            0 0 0 1];
+% % put examples in columns
+% train_x = train_x';
+% 
+% % number of batches
+% numbatches = floor( size(train_x, 2) / batchsize ); % need integer so floor
+%            
+% % training outputs as array
+% train_y = [0 1 0 0 % diag
+%            0 1 0 0 % diag
+%            0 0 1 0 % vert
+%            0 0 1 0 % vert
+%            0 0 0 1 % horiz
+%            0 0 0 1]; % horiz
+% % put examples in columns
+% train_y = train_y';
+% % the rest of the output y's are the columns [1 0 0 0]'
+% train_1 = ones(1,10);
+% train_0 = zeros(3,10);
+% train_10 = [train_1; train_0];
+% % combine to full train_y
+% train_y = [train_y train_10];
+% 
+% % initialize node values
+% ai = zeros(numInputNodes,batchsize);
+% ah = zeros(numHiddenNodes,1);
+% ao = zeros(numOutputNodes,batchsize);
+% a = {ai};
+% for j = 2:numHiddenLayers+1
+%     a{j} = ah;
+% end
+% a{numHiddenLayers + 2} = ao;
+% 
+% % initialize weights for numHiddenLayers & numHiddenNodes 
+% % randomly in range -1 to +1
+% wi = 2*rand(numHiddenNodes,numInputNodes) - 1;
+% wh = 2*rand(numHiddenNodes,numHiddenNodes) - 1;
+% wo = 2*rand(numOutputNodes,numHiddenNodes) - 1;
+% W = {wi};
+% for j = 2:numHiddenLayers
+%     W{j} = wh;
+% end
+% W{numHiddenLayers + 1} = wo;
+% 
+% % initialize biases
+% initBias = 0;
+% Bh = initBias * ones(numHiddenNodes,1);
+% Bo = zeros(numOutputNodes,1);
+% for j = 1:numHiddenLayers
+%     B{j} = Bh;
+% end
+% B{numHiddenLayers+1} = Bo;
+% dB = B;
+% 
+% for j = 1 : numepochs
+%     % randomly rearrange the training data for each epoch
+%     % We keep the shuffled index in kk, so that the input and output could
+%     % be matched together
+%     kk = randperm(size(train_x, 2)); 
+% 
+%     for b = 1 : numbatches 
+% 
+%         a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
+%         y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
+%         
+%         % forward propagation
+%         for i = 2 : numHiddenLayers + 2
+%             % without biases B
+%             % a{i} = sigmaFunc( W{i-1}*a{i-1} );
+%             % with biases B
+%             a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
 %         end
-        
-    end
-end
-
-% save workspace so we can use below after clearing 
-save('WS')
+%         
+%         % calculate the error and back-propagate error
+%         d{numHiddenLayers + 1} = -(y - a{numHiddenLayers + 2}) .* ... 
+%                       a{numHiddenLayers + 2} .* (1-a{numHiddenLayers + 2});
+%         
+%         for i = numHiddenLayers : -1 : 1
+%             d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1-a{i+1});
+%         end 
+% 
+%         % update weights
+%         % L2 regularization is used for W 
+%         for i = 1 : numHiddenLayers+1
+%             dW{i} = d{i} * a{i}';
+%             W{i} = W{i} - alpha * (dW{i} + lambda * W{i}); 
+%         end
+%         
+% %         % update biases added to nodes in hidden layers
+% %         for i = 1 : numHiddenLayers
+% %             dB{i} = sum(d{i},2);
+% %             B{i} = B{i} - alpha * dB{i};
+% %         end
+%         
+%     end
+% end
+% 
+% % save workspace so we can use below after clearing 
+% save('WS')
 
 %% Testing
 
@@ -278,9 +278,7 @@ figure('Name','Connection weights', 'NumberTitle','off')
 for j = 1:numHiddenLayers+1
     im = W{j};
     im = rcm * (im - minim)/imspan;
-    if j == 1
-        im = im';
-    end
+    im = im'; % so now row is start node, column is end node in next layer
     subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
 end
 cm = colormap(gray(64));
