@@ -238,9 +238,7 @@ figure('Name','Connection weights', 'NumberTitle','off')
 for j = 1:numHiddenLayers+1
     im = W{j};
     im = rcm * (im - minim)/imspan;
-%     if j == 2
-        im = im';
-%     end
+    im = im'; % so now row is start node, column is end node in next layer
     subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
 end
 cm = colormap(gray(64));
