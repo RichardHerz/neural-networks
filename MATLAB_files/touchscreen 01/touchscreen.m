@@ -167,7 +167,7 @@ for tn = 1:size(train_x, 2)
     x = a{1};
     fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
     for i = 2 : numHiddenLayers + 2
-        a{i} = sigmaFunc( W{i-1}*a{i-1} );
+        a{i} = sigmaFunc( W{i-1} * a{i-1} );
     end
     
     yex = a{numHiddenLayers + 2};
