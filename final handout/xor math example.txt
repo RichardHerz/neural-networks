@@ -9,7 +9,7 @@
   EXAMPLE for input of  1
                                           0
 
-    node value = sigmaFunc( sum of (node activation * connection weight) ) 
+    node value = sigmaFunc( sum of ( connection weight * node activation ) ) 
 
     where sigmaFunc(x) = exp(x) / (1 + exp(x) )  >> converts all input x values into range 0 to 1 
 
