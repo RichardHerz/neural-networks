@@ -13,19 +13,19 @@ fprintf('------------ run separator ------------ \n')
 clear clc
 clear all 
 
-numInputNodes = 4;
-numOutputNodes = 4;
-numHiddenNodes = 60; % nodes per hidden layer
-numHiddenLayers = 4;
+numInputNodes = 1;
+numOutputNodes = 1;
+numHiddenNodes = 1; % nodes per hidden layer
+numHiddenLayers = 1;
 
 % Learning rate alpha 
-alpha = 0.01;
+alpha = 0.1;
 % Lambda is for regularization 
-lambda = 0.001;
+lambda = 0.0;
 % Num of iterations 
-numepochs = 1e4;
+numepochs = 1;
 % size of batches of inputs to train at same time
-batchsize = 4; % e.g., 4 for 4 random examples per batch
+batchsize = 1; % e.g., 4 for 4 random examples per batch
 
 % answers in order of train_y indices
 answer = ["none" "diagonal" "vertical" "horizontal"]; 
@@ -33,22 +33,7 @@ answer = ["none" "diagonal" "vertical" "horizontal"];
 %% Training 
 
 % training inputs
-train_x = [1 0 0 1 % diag
-           0 1 1 0 % diag
-           1 1 0 0 % vert
-           0 0 1 1 % vert
-           1 0 1 0 % horiz
-           0 1 0 1 % horiz
-           1 1 1 1 % all dots
-           0 0 0 0 % no dots
-           0 1 1 1 % start 3 dots
-           1 0 1 1
-           1 1 0 1
-           1 1 1 0
-           1 0 0 0 % start single dots 
-           0 1 0 0
-           0 0 1 0
-           0 0 0 1];
+train_x = [0.1];
 % put examples in columns
 train_x = train_x';
 
@@ -56,20 +41,7 @@ train_x = train_x';
 numbatches = floor( size(train_x, 2) / batchsize ); % need integer so floor
            
 % training outputs as array
-train_y = [0 1 0 0 % diag
-           0 1 0 0 % diag
-           0 0 1 0 % vert
-           0 0 1 0 % vert
-           0 0 0 1 % horiz
-           0 0 0 1]; % horiz
-% put examples in columns
-train_y = train_y';
-% the rest of the output y's are the columns [1 0 0 0]'
-train_1 = ones(1,10);
-train_0 = zeros(3,10);
-train_10 = [train_1; train_0];
-% combine to full train_y
-train_y = [train_y train_10];
+train_y = [0.9];
 
 % initialize node values
 ai = zeros(numInputNodes,batchsize);
@@ -147,7 +119,7 @@ for j = 1 : numepochs
         end 
 
         % update weights
-        % L2 regularization is used for W, at lambda * W 
+        % L2 regularization is used for W 
         for i = 1 : numHiddenLayers+1
             dW{i} = d{i} * a{i}';
             W{i} = W{i} - alpha * (dW{i} + lambda * W{i}); 
@@ -182,7 +154,7 @@ for tn = 1:size(train_x, 2)
     
     a{1} = train_x(:,tn);
     x = a{1};
-    fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
+    fprintf('input: %i \n',x(1))
     for i = 2 : numHiddenLayers + 2
         a{i} = sigmaFunc( W{i-1}*a{i-1} );
     end
