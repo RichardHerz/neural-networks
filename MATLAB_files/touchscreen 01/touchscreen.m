@@ -121,38 +121,44 @@
 %             a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
 %         end
 %         
-%         % calculate the error and back-propagate error
-%         
-%         % for the last, output nodes at numHuddenLayers+2, the error is 
-%         % the difference between the 
-%         % desired training output y and the computed output a; then
-%         % for the preceding unit at numHuddenLayers+1, the error delta 
-%         % is the last error at numHuddenLayers+2 multiplied by
-%         % the derivative of the sigmaFunc with respect to the output value,
-%         % which are the a*(1-a) terms
-%         d{numHiddenLayers + 1} = -(y - a{numHiddenLayers + 2}) .* ... 
-%                       a{numHiddenLayers + 2} .* (1-a{numHiddenLayers + 2});
-%         
-%         % for all the preceding nodes 1 to numHuddenLayers at i, the error 
-%         % delta is the later error d at i+1, multiplied by the weights and
-%         % then by the derivative of the sigmaFunc with respect to the
-%         % output value, which are the a*(1-a) terms
-%         for i = numHiddenLayers : -1 : 1
-%             d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1-a{i+1});
-%         end 
+%     % start back-propagation 
+%     % calculate the error and back-propagate the error
+%     % in order to update the connection weights 
 % 
-%         % update weights
-%         % L2 regularization is used for W 
-%         for i = 1 : numHiddenLayers+1
-%             dW{i} = d{i} * a{i}';
-%             W{i} = W{i} - alpha * (dW{i} + lambda * W{i}); 
-%         end
-%         
-% %         % update biases added to nodes in hidden layers
-% %         for i = 1 : numHiddenLayers
-% %             dB{i} = sum(d{i},2);
-% %             B{i} = B{i} - alpha * dB{i};
-% %         end
+%     %{
+%     for the last, output nodes at numHuddenLayers+2, the error is 
+%     the difference between the desired training output y and the        
+%     computed output a; then for the preceding unit at 
+%     numHuddenLayers+1, the error delta is the last error at 
+%     numHuddenLayers+2 multiplied by the derivative of the sigmaFunc 
+%     with respect to the output value, which are the a*(1-a) terms
+%     %}
+%     i = numHiddenLayers+1;
+%     d{i+1} = (y - a{numHiddenLayers+2});
+%     d{i} = d{i+1} .* a{i+1} .* (1 - a{i+1});
+% 
+%     %{
+%     for all preceding nodes i, numHuddenLayers down to 1, the error 
+%     delta is the later d at i+1, multiplied by the weights and
+%     then by the derivative of the sigmaFunc with respect to the
+%     output value, which are the a*(1-a) terms
+%     %}
+%     for i = numHiddenLayers : -1 : 1
+%         d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1 - a{i+1});
+%     end 
+% 
+%     % update weights after all error delta d's have been computed
+%     % L2 regularization is used for W, which is the lambda * W term 
+%     for i = 1 : numHiddenLayers+1
+%         dW{i} = d{i} * a{i}';
+%         W{i} = W{i} + alpha * (dW{i} - lambda * W{i}); 
+%     end
+% 
+% %     % update biases added to nodes in hidden layers
+% %     for i = 1 : numHiddenLayers
+% %         dB{i} = sum(d{i},2);
+% %         B{i} = B{i} + alpha * dB{i};
+% %     end
 %         
 %     end
 % end
