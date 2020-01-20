@@ -134,8 +134,8 @@ for j = 1 : numepochs
         for the last, output nodes at numHuddenLayers+2, the error is 
         the difference between the desired training output y and the        
         computed output a; then for the preceding unit at 
-        numHuddenLayers+1, the error delta is the last error at 
-        numHuddenLayers+2 multiplied by the derivative of the sigmaFunc 
+        numHuddenLayers+1, the error derivative delta (d) is the last error  
+        at numHuddenLayers+2 multiplied by the derivative of the sigmaFunc 
         with respect to the output value, which are the a*(1-a) terms
         %}
         i = numHiddenLayers+1;
@@ -144,7 +144,7 @@ for j = 1 : numepochs
 
         %{
         for all preceding nodes i, numHuddenLayers down to 1, the error 
-        delta is the later d at i+1, multiplied by the weights and
+        delta d is the later d at i+1, multiplied by the weights and
         then by the derivative of the sigmaFunc with respect to the
         output value, which are the a*(1-a) terms
         %}
