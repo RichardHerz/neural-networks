@@ -134,7 +134,7 @@
 %     with respect to the output value, which are the a*(1-a) terms
 %     %}
 %     i = numHiddenLayers+1;
-%     d{i+1} = (y - a{numHiddenLayers+2});
+%     d{i+1} = (y - a{i+1});
 %     d{i} = d{i+1} .* a{i+1} .* (1 - a{i+1});
 % 
 %     %{
