@@ -1,0 +1,21 @@
+
+
+  HIDDEN LAYER > OUTPUT 
+
+    sigmaFunc( ( -4.0030 ) * 0.9959  + ( -7.5988 ) * 0.0153 + 8.1402 * 0.6719 )  =  0.7969  =  output node
+
+==============
+
+  EXAMPLE for input of  1
+                                          0
+
+    node value = sigmaFunc( sum of ( connection weight * node activation ) ) 
+
+    where sigmaFunc(x) = exp(x) / (1 + exp(x) )  >> converts all input x values into range 0 to 1 
+
+  INPUT > HIDDEN LAYER 
+
+    sigmaFunc( 5.4868 * 1 + ( -2.7276 ) * 0 )  =  0.9959  =  hidden node 1 activation 
+
+
+
