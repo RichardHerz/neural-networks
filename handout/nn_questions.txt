@@ -1,0 +1,11 @@
+QUESTIONS 
+
+neural network - do random initialized connection weights with positive values stay positive and similar for negative initialized? 
+
+identify connection weights that switch signs… 
+
+in final weights, are half negative and half positive? - seem both have mean near zero
+
+what if initial weights are skewed positive? - negative? 
+
+randomizing then sorting initial weights doesn’t work well - seem to want to be random value and random location initially 
