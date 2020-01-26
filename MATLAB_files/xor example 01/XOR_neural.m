@@ -96,6 +96,10 @@ for j = 1 : numepochs
             a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
         end
         
+%         for i = 2:3
+%             a{i} = sigmaFunc( W{i-1}*a{i-1} );
+%         end
+        
     % start back-propagation 
     % calculate the error and back-propagate the error
     % in order to update the connection weights 
