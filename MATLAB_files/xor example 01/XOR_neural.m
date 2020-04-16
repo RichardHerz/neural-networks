@@ -5,6 +5,9 @@
 
 % EXAMPLE OF XOR from  https://www.mladdict.com/neural-network-simulator 
 
+% FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
+% https://en.wikipedia.org/wiki/Gradient_descent 
+
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
 fprintf('------------ run separator ------------ \n')
@@ -13,7 +16,7 @@ clear all
 
 numInputNodes = 2;
 numOutputNodes = 1;
-numHiddenNodes = 3; % nodes per hidden layer
+numHiddenNodes = 3; % nodes per hidden layer, must be >= 1
 numHiddenLayers = 1;
 
 % Learning rate alpha 
@@ -61,11 +64,20 @@ a{numHiddenLayers + 2} = ao;
 wi = 2*rand(numHiddenNodes,numInputNodes) - 1;
 wh = 2*rand(numHiddenNodes,numHiddenNodes) - 1;
 wo = 2*rand(numOutputNodes,numHiddenNodes) - 1;
-W = {wi};
-for j = 2:numHiddenLayers
-    W{j} = wh;
+
+if (numHiddenLayers > 1)
+    W = {wi};
+    for j = 2:numHiddenLayers
+        W{j} = wh;
+    end
+    W{numHiddenLayers + 1} = wo;
+elseif (numHiddenLayers == 1)
+    W{1} = wi;
+    W{2} = wo;
+else
+    fprintf(' xxxx this program requires at least 1 hidden layer xxxxx \n')
+    return
 end
-W{numHiddenLayers + 1} = wo;
 
 % initialize biases
 initBias = 0;
@@ -95,42 +107,43 @@ for j = 1 : numepochs
             % with biases B
             a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
         end
-        
-%         for i = 2:3
-%             a{i} = sigmaFunc( W{i-1}*a{i-1} );
-%         end
-        
-    % start back-propagation 
-    % calculate the error and back-propagate the error
-    % in order to update the connection weights 
-
+       
     %{
-    for the last, output nodes at numHuddenLayers+2, the error is 
-    the difference between the desired training output y and the        
-    computed output a; then for the preceding unit at 
-    numHuddenLayers+1, the error derivative delta (d) is the last error  
-    at numHuddenLayers+2 multiplied by the derivative of the sigmaFunc 
-    with respect to the output value, which are the a*(1-a) terms
+    start back-propagation 
+
+    The total error to be minimized is sum(0.5*(y - a).^2) at the output
+    layer
+    
+    The gradient descent algorithm is used to update the connection 
+    weights between each pair of layers in order to minimize 
+    the total error at the final output nodes. This is done in the
+    "back" direction from the output layer back toward the input layer.
+
+    For the last, output layer, the error derivatives d{numHuddenLayers+1} 
+    are the derivatives of the total error with respect to the estimated 
+    outputs multiplied by the derivatives of the estimated outputs 
+    with respect to the arguments of the sigma function (the a*(1-a) terms)
     %}
     i = numHiddenLayers+1;
-    d{i+1} = (y - a{i+1});
-    d{i} = d{i+1} .* a{i+1} .* (1 - a{i+1});
+    d{i} = -(y - a{i+1}) .* a{i+1} .* (1 - a{i+1});
 
     %{
+    moving "back" toward the input,
     for all preceding nodes i, numHuddenLayers down to 1, the error 
     delta d is the later d at i+1, multiplied by the weights and
-    then by the derivative of the sigmaFunc with respect to the
-    output value, which are the a*(1-a) terms
+    then by the derivatives of the estimated outputs 
+    with respect to the arguments of the sigma function (the a*(1-a) terms)
     %}
     for i = numHiddenLayers : -1 : 1
         d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1 - a{i+1});
     end 
 
     % update weights after all error delta d's have been computed
-    % L2 regularization is used for W, which is the lambda * W term 
     for i = 1 : numHiddenLayers+1
         dW{i} = d{i} * a{i}';
-        W{i} = W{i} + alpha * (dW{i} - lambda * W{i}); 
+        % use the gradient descent method, where
+        % L2 regularization is used for W, which is the lambda * W term 
+        W{i} = W{i} - alpha * (dW{i} - lambda * W{i}); 
     end
 
 %     % update biases added to nodes in hidden layers
@@ -147,8 +160,9 @@ save('WS')
 
 %% Testing
 
-% just loading same workspace but could be useful
-% in future for re-using the weights W
+% just loading same workspace but is useful
+% for re-using the weights W
+% when only running this or following sections
 clear all
 load('WS.mat')
 
@@ -190,7 +204,7 @@ end
 
 %% set an single input to image below 
 
-tn = 2; % uses tn several places below 
+tn = 2; % uses tn several places below, which single input to use 
 
 a{1} = train_x(:,tn);
 x = a{1};
