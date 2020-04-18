@@ -101,6 +101,7 @@ for j = 1 : numepochs
         y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
         
         % forward propagation
+        
         for i = 2 : numHiddenLayers + 2
             % without biases B
             % a{i} = sigmaFunc( W{i-1}*a{i-1} );
@@ -118,30 +119,45 @@ for j = 1 : numepochs
     weights between each pair of layers in order to minimize 
     the total error at the final output nodes. This is done in the
     "back" direction from the output layer back toward the input layer.
+        
+    The error gradients d{i} are the derivatives of the errors with 
+    respect to the activation values. The dW{i} below, which are used to 
+    adjust the weights, are the derivatives of the errors with respect to  
+    the connection weights. 
 
-    For the last, output layer, the error derivatives d{numHuddenLayers+1} 
-    are the derivatives of the total error with respect to the estimated 
-    outputs multiplied by the derivatives of the estimated outputs 
-    with respect to the arguments of the sigma function (the a*(1-a) terms)
+    Starting at the output, and corresponding to the weights W{i} from 
+    layer i to the last output layer i+1, the error gradients d{i} = the 
+    negative of the derivatives of the total error with respect to the 
+    estimated output activation, -(y - a{i+1}), times the derivatives of 
+    the output activations a{i+1} with respect to the arguments of the 
+    sigma function (the a*(1-a) terms)
     %}
     i = numHiddenLayers+1;
     d{i} = -(y - a{i+1}) .* a{i+1} .* (1 - a{i+1});
 
     %{
-    moving "back" toward the input,
-    for all preceding nodes i, numHuddenLayers down to 1, the error 
-    delta d is the later d at i+1, multiplied by the weights and
-    then by the derivatives of the estimated outputs 
-    with respect to the arguments of the sigma function (the a*(1-a) terms)
+    moving "back" toward the input, 
+    corresponding to the weights W{i} from layer i to i+1, the error
+    gradient d{i} = the weights W{i+1} times the gradient d{i+1}, times 
+    the derivatives of the activations a{i+1} with respect to the 
+    arguments of the sigma function (the a*(1-a) terms)
     %}
     for i = numHiddenLayers : -1 : 1
         d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1 - a{i+1});
     end 
 
-    % update weights after all error delta d's have been computed
+    %{
+    update connection weights using the gradient descent method
+    
+    The error gradients d{i} are the derivatives of the errors with 
+    respect to the activations a{i}. 
+    
+    The dW{i}, which are used to adjust the weights, are the derivatives 
+    of the errors with respect to the connection weights.
+    %}
+    
     for i = 1 : numHiddenLayers+1
         dW{i} = d{i} * a{i}';
-        % use the gradient descent method, where
         % L2 regularization is used for W, which is the lambda * W term 
         W{i} = W{i} - alpha * (dW{i} - lambda * W{i}); 
     end
