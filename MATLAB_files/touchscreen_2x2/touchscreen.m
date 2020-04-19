@@ -1,5 +1,8 @@
-% neural network example
-% based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% neural network example 
+% example of a 2x2 "touchscreen" 
+% the network is trained to detect vertical, horizontal & diagonal "lines" 
+%
+% algorithm based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
 % with modifications 
 
@@ -134,8 +137,8 @@ for j = 1 : numepochs
             a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
         end
         
-     %{
-        start back-propagation 
+        %{
+        Start Back-Propagation in order to train network
 
         The total error to be minimized is sum(0.5*(y - a).^2) at the output
         layer

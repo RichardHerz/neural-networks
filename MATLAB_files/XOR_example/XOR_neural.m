@@ -1,12 +1,22 @@
 % neural network example
-% based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% example of XOR from  https://www.mladdict.com/neural-network-simulator
+%
+% algorithm based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
 % with modifications 
 
-% EXAMPLE OF XOR from  https://www.mladdict.com/neural-network-simulator 
+%{
+Relationships in this XOR network: 
+
+layer           input       hidden        output
+activation      a{1}         a{2}          a{3} to approx y 
+weight                W{1}         W{2} 
+
+%}
 
 % FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
 % https://en.wikipedia.org/wiki/Gradient_descent 
+
 
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
@@ -110,16 +120,29 @@ for j = 1 : numepochs
         end
        
     %{
-    start back-propagation 
-
-    The total error to be minimized is sum(0.5*(y - a).^2) at the output
-    layer
+    Start Back-Propagation in order to train network 
+    
+    The total error to be minimized is sum(0.5*(y - a).^2) at the output.
     
     The gradient descent algorithm is used to update the connection 
     weights between each pair of layers in order to minimize 
     the total error at the final output nodes. This is done in the
     "back" direction from the output layer back toward the input layer.
-        
+
+    Relationships in this XOR network: 
+
+    layer           input      hidden        output
+    activation      a{1}         a{2}          a{3} to approx y  
+    weight                W{1}         W{2} 
+    deltas                       d{1}          d{2}
+    delta W               dW{1}        dW{2}
+
+    equations 
+      d{2} = -(y - a{3}) .* a{3} .* (1 - a{3});
+      d{1} = W{2}' * d{2} .* a{2} .* (1 - a{2});
+      dW{i} = d{i}*a{i}' 
+      W{i} = W{i} - alpha * (dW{i} - lambda * W{i});
+            
     The error gradients d{i} are the derivatives of the errors with 
     respect to the activation values. The dW{i} below, which are used to 
     adjust the weights, are the derivatives of the errors with respect to  
