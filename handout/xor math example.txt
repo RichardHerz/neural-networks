@@ -2,7 +2,7 @@
 
   HIDDEN LAYER > OUTPUT 
 
-    sigmaFunc( ( -4.0030 ) * 0.9959  + ( -7.5988 ) * 0.0153 + 8.1402 * 0.6719 )  =  0.7969  =  output node
+    sigmaFunc( ( -10.9 * 0.020 ) + ( 15.5  * 1.0 ) + ( -11.2 * 1.0 ) )  =  0.98  =  output node
 
 ==============
 
@@ -15,7 +15,23 @@
 
   INPUT > HIDDEN LAYER 
 
-    sigmaFunc( 5.4868 * 1 + ( -2.7276 ) * 0 )  =  0.9959  =  hidden node 1 activation 
+    sigmaFunc( ( -3.91 * 1) + ( 7.40 * 0 ) )  =  0.02  =  hidden node 1 activation 
 
 
+===============
+a1f =
 
+     1
+     1
+
+
+a2f =
+
+   0.97
+   1.00
+   0.96
+
+
+a3f =
+
+   0.003

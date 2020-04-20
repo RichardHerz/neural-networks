@@ -301,34 +301,34 @@ cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black
 colormap(cm);
 
-% %% imaging connection weights (W)
-% 
-% fprintf('----- image connection weights -------- \n')
-% % get min and max of entire set so can image
-% % on same color scale
-% maxim = -99;
-% minim = 99;
-% for j = 2:numHiddenLayers+1
-%     tmaxim = max(max(W{j}))
-%     tminim = min(min(W{j}))
-%     if tmaxim > maxim
-%         maxim = tmaxim;
-%     end
-%     if tminim < minim
-%         minim = tminim;
-%     end
-% end
-% imspan = maxim-minim;
-% fprintf('weight min = %g, weight max = %g \n',minim,maxim)
-% rcm = 64;
-% % colormap(jet(rcm));
-% figure('Name','Connection weights', 'NumberTitle','off')
-% for j = 1:numHiddenLayers+1
-%     im = W{j};
-%     im = rcm * (im - minim)/imspan;
-%     im = im'; % so now row is start node, column is end node in next layer
-%     subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
-% end
-% cm = colormap(gray(64));
-% cm = flipud(cm); % change 0 to white, 1 to black
-% colormap(cm);
+%% imaging connection weights (W)
+
+fprintf('----- image connection weights -------- \n')
+% get min and max of entire set so can image
+% on same color scale
+maxim = -99;
+minim = 99;
+for j = 2:numHiddenLayers+1
+    tmaxim = max(max(W{j}))
+    tminim = min(min(W{j}))
+    if tmaxim > maxim
+        maxim = tmaxim;
+    end
+    if tminim < minim
+        minim = tminim;
+    end
+end
+imspan = maxim-minim;
+fprintf('weight min = %g, weight max = %g \n',minim,maxim)
+rcm = 64;
+% colormap(jet(rcm));
+figure('Name','Connection weights', 'NumberTitle','off')
+for j = 1:numHiddenLayers+1
+    im = W{j};
+    im = rcm * (im - minim)/imspan;
+    im = im'; % so now row is start node, column is end node in next layer
+    subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
+end
+cm = colormap(gray(64));
+cm = flipud(cm); % change 0 to white, 1 to black
+colormap(cm);
