@@ -1,0 +1,6 @@
+objective is to follow all values for two iterations 
+
+only one training input [1 1] with answer y = 0 
+
+only does 2 iternations of changing weights 
+
