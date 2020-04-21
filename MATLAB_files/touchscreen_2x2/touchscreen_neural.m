@@ -2,7 +2,7 @@
 % example of a 2x2 "touchscreen" 
 % the network is trained to detect vertical, horizontal & diagonal "lines" 
 %
-% algorithm based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% algorithm based on pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
 % with modifications 
 
@@ -79,7 +79,7 @@ train_y = [train_y train_10];
 
 % initialize node values
 ai = zeros(numInputNodes,batchsize);
-ah = zeros(numHiddenNodes,1);
+ah = zeros(numHiddenNodes,batchsize);
 ao = zeros(numOutputNodes,batchsize);
 a = {ai};
 for j = 2:numHiddenLayers+1
@@ -123,11 +123,18 @@ for j = 1 : numepochs
     % be matched together
     kk = randperm(size(train_x, 2)); 
 
-    for b = 1 : numbatches 
+     for b = 1 : numbatches 
 
         a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
         y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
         
+        %{
+        Note: when more than one matrix is put into one cell of a
+        cell array, they are combined into a single matrix in that cell;
+        e.g., 4 examples of 2 input arrays in one cell creates a 2x4 array
+        in that cell
+        %}
+       
         % forward propagation
         
         for i = 2 : numHiddenLayers + 2
@@ -182,8 +189,19 @@ for j = 1 : numepochs
 
         The dW{i}, which are used to adjust the weights, are the derivatives 
         of the errors with respect to the connection weights.
-        %}
 
+        When the d{i} and a{i}' contain multiple examples (batchsize > 1),
+        all the example arrays are combined into one array in each cell.
+        For this operation, dW{i} = d{i} * a{i}', the result is one array
+        of the size of a single example of W{i}.
+        For 4 examples in 1 batch between 2 input nodes and 3 hidden nodes, 
+        the size of d{i} is 3x4 and the size of a{i}' is 4x2, 
+        and the result is a dW{i} (and W{i}) of size 3x2.
+        For one output node, its 4 d examples and 4 input node examples in the
+        batch get individually multiplied and then summed to create 
+        the one node's resultant dW.
+        %} 
+        
         for i = 1 : numHiddenLayers+1
             dW{i} = d{i} * a{i}';
             % L2 regularization is used for W, which is the lambda * W term 
