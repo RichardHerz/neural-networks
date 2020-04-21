@@ -197,9 +197,9 @@ for j = 1 : numepochs
         For 4 examples in 1 batch between 2 input nodes and 3 hidden nodes, 
         the size of d{i} is 3x4 and the size of a{i}' is 4x2, 
         and the result is a dW{i} (and W{i}) of size 3x2.
-        For one output node, its 4 d examples and 4 input node examples in the
-        batch get individually multiplied and then summed to create 
-        the one node's resultant dW.
+        For the output node in one node pair, its 4 d examples and 4 input node examples
+        in the batch get individually multiplied and then summed to create 
+       that one node pair's resultant dW.
         %} 
         
         for i = 1 : numHiddenLayers+1
