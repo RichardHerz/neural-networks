@@ -1,5 +1,5 @@
 # neural-networks
-Some neural networks written in MATLAB and a handout explaining networks starting with a simple example:
+Some neural networks written in MATLAB and a handout of slides explaining networks starting with a simple example:
 
 ![nn-network-github](http://reactorlab.net/graphics/github_media/nn_network.png)  
 ---------
