@@ -1,0 +1,39 @@
+Training Artificial Neural Networks 
+
+The networks we showed earlier in these notes had already been "trained" to produce correct outputs given various inputs. The connection weights are fixed in the initial training stage. 
+
+A collection of paired inputs and their correct outputs is obtained to use in training the network.
+
+Initial weights are set to random values. Then an input is fed to the network and an output is obtained. This output is compared to the correct output and an error value is computed. The initial error value will be large. 
+
+Next, for each connection weight in the network, the rate of change of the error with respect to a change in the value of that weight is computed. After the rates of change for all the weights are obtained, the weights are changed by multiplying a small constant times each of the rates of change, and then subtracting the result from corresponding weights. This small adjustment to the weights, when the input is again fed to the network, will result in a smaller error in the output. 
+
+This procedure is called the gradient descent method. The rates of change are also called gradients. You wish to "descend" to smaller errors. 
+
+----------------------- 
+
+This procedure is repeated until the error reaches a minimum value. If the network is properly structured for the problem, the network will give approximately correct results, even for inputs that are not in the training set. Note that the simple XOR and 2x2 touch screen networks had all possible inputs used in training, whereas the 28x28 touch screen was trained with a finite set of the extraordinarily large possible combinations of pixel activations that are possible. The 28x28 touch screen network shown in a previous slide was trained with the MNIST data set http://yann.lecun.com/exdb/mnist/ 
+
+The gradient descent method is applied to all of the pairs of inputs and outputs in the training set, either individually or in batches. 
+
+Next, we will examine how the gradient values in the gradient descent method are obtained. 
+
+----------------------- 
+
+In the simple network structure we are considering, information signals move in one direction: from the input to the output. A change in one connection weight near the input causes a change in the signal that propagates through the rest of the network and eventually results in a change in the final output error. 
+
+The way that this change in signal propagates through the network is determined by the connection weights and nodes through which it passes. Those weights and nodes are known to us. 
+
+One way to determine the gradients would be to make a change in each connection weight separately, then compute the change in error. Then repeat for each connection weight in the network. 
+
+A more efficient way to compute the gradients is to work backwards from the output to each preceding connection weight in a procedure called "back propagation." 
+
+This method procedes from the output layer to the last hidden layer, then back to each preceding pair of hidden layers, computing the gradients of error with change in connection weight at each step. This process is more efficient because the entire network from input to output doesn't have to be computed for each connection weight.
+
+After all the gradients are computed, all the weights are updated. Then the input is fed to the modified network and a new output and error is computed. 
+
+Then the gradient descent process is repeated. A new output and error is computed, then the gradients are again computed working from the output layer back to the input. This continues until only small changes in output error are obtained.
+
+----------------------- 
+
+
