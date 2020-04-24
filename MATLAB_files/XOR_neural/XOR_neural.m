@@ -134,9 +134,7 @@ for j = 1 : numepochs
         layer           input      hidden        output
         activation      a{1}         a{2}          a{3} to approx y  
         weight                W{1}         W{2} 
-        deltas                       d{1}          d{2}
-        delta W               dW{1}        dW{2}
-
+ 
         Error
         
           j = numHiddenLayers+1
