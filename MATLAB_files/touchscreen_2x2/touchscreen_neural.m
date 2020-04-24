@@ -77,9 +77,9 @@ train_10 = [train_1; train_0];
 % combine to full train_y
 train_y = [train_y train_10];
 
-% initialize node values
+% initialize node activations
 ai = zeros(numInputNodes,batchsize);
-ah = zeros(numHiddenNodes,batchsize);
+ah = zeros(numHiddenNodes,batchsize); 
 ao = zeros(numOutputNodes,batchsize);
 a = {ai};
 for j = 2:numHiddenLayers+1
@@ -87,8 +87,7 @@ for j = 2:numHiddenLayers+1
 end
 a{numHiddenLayers + 2} = ao;
 
-% initialize weights for numHiddenLayers & numHiddenNodes 
-% randomly in range -1 to +1
+% initialize connection weights randomly in range -1 to +1
 wi = 2*rand(numHiddenNodes,numInputNodes) - 1;
 wh = 2*rand(numHiddenNodes,numHiddenNodes) - 1;
 wo = 2*rand(numOutputNodes,numHiddenNodes) - 1;
@@ -105,7 +104,7 @@ elseif (numHiddenLayers == 1)
 else
     fprintf(' xxxx this program requires at least 1 hidden layer xxxxx \n')
     return
-end 
+end
 
 % initialize biases
 initBias = 0;
@@ -123,89 +122,104 @@ for j = 1 : numepochs
     % be matched together
     kk = randperm(size(train_x, 2)); 
 
-     for b = 1 : numbatches 
+    for b = 1 : numbatches 
 
         a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
         y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
         
         %{
-        Note: when more than one matrix is put into one cell of a
+        Note: when two or more matrices are put into one cell of a
         cell array, they are combined into a single matrix in that cell;
         e.g., 4 examples of 2 input arrays in one cell creates a 2x4 array
         in that cell
         %}
-       
-        % forward propagation
+               
+        % Forward propagation
         
-        for i = 2 : numHiddenLayers + 2
+        for j = 2 : numHiddenLayers + 2
             % without biases B
             % a{i} = sigmaFunc( W{i-1}*a{i-1} );
             % with biases B
-            a{i} = sigmaFunc(bsxfun( @plus, W{i-1}*a{i-1}, B{i-1} ) );
+            a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
         end
-        
+              
         %{
-        Start Back-Propagation in order to train network
+        Start Back-Propagation in order to train network and
+        minimize error by adjusting weights using gradient
+        descent method
+         
+        Relationships in this XOR network: 
 
-        The total error to be minimized is sum(0.5*(y - a).^2) at the output
-        layer
+        layer           input      hidden        output
+        activation      a{1}         a{2}          a{3} to approx y  
+        weight                W{1}         W{2} 
 
-        The gradient descent algorithm is used to update the connection 
-        weights between each pair of layers in order to minimize 
-        the total error at the final output nodes. This is done in the
-        "back" direction from the output layer back toward the input layer.
-
-        The error gradients d{i} are the derivatives of the errors with 
-        respect to the activation values. The dW{i} below, which are used to 
-        adjust the weights, are the derivatives of the errors with respect to  
-        the connection weights. 
-
-        Starting at the output, and corresponding to the weights W{i} from 
-        layer i to the last output layer i+1, the error gradients d{i} = the 
-        negative of the derivatives of the total error with respect to the 
-        estimated output activation, -(y - a{i+1}), times the derivatives of 
-        the output activations a{i+1} with respect to the arguments of the 
-        sigma function (the a*(1-a) terms)
-        %}
-        i = numHiddenLayers+1;
-        d{i} = -(y - a{i+1}) .* a{i+1} .* (1 - a{i+1});
+        Error
+        
+          j = numHiddenLayers+1
+          E = 0.5 * ( y - a{j+1} ).^2
+        
+        Derivative of error with respect to output
+        
+          dE_da{j+1} = - ( y - a{numHiddenLayers+2} ) 
+        
+        Define inputs I from last hidden layer going to the output layer
+     
+          I{j} = W{j} * a{j}
+        
+          a{j+1} = sigmaFunc( I{j} )
+          da{j+1}_dI{j} = dsigmaFunc(I{j})_dI{j}
+                        = a{j+1} .* (1 - a{j+1})
+        
+          dE_dI{j} = dE_da{j+1} * da{j+1}_dI{j}
+                   = -(y - a{j+1}) * a{j+1} .* (1 - a{j+1})
+        %} 
+        
+        j = numHiddenLayers+1;
+        dE_dI{j} = -(y - a{j+1}) .* a{j+1} .* (1 - a{j+1});
 
         %{
         moving "back" toward the input, 
-        corresponding to the weights W{i} from layer i to i+1, the error
-        gradient d{i} = the weights W{i+1} times the gradient d{i+1}, times 
-        the derivatives of the activations a{i+1} with respect to the 
-        arguments of the sigma function (the a*(1-a) terms)
+        
+        for j = numHiddenLayers : -1 : 1
+        
+          I{j} = W{j} * a{j}
+          a{j+1} = sigmaFunc(I{j})
+          da{j+1}_dI{j} = dsigmaFunc(I{j})_dI{j}
+                        = a{j+1} .* (1 - a{j+1})
+        
+          dE_da{j+1} = dI{j+1}_da{j+1} * dE_I{j+1}
+          dI{j+1}_da{j+1} = W{j+1} 
+          dE_da{j+1} = W{j+1}' * dE_I{j+1}
+                
+          dE_dI{j} = dE_da{j+1} * da{j+1}_dI{j}
+                   = W{j+1}' * dE_I{j+1} * a{j+1} .* (1 - a{j+1})
+        end
         %}
-        for i = numHiddenLayers : -1 : 1
-            d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1 - a{i+1});
+        
+        for j = numHiddenLayers : -1 : 1
+            dE_dI{j} = W{j+1}' * dE_dI{j+1} .* a{j+1} .* (1 - a{j+1});
         end 
 
         %{
-        update connection weights using the gradient descent method
-
-        The error gradients d{i} are the derivatives of the errors with 
-        respect to the activations a{i}. 
-
-        The dW{i}, which are used to adjust the weights, are the derivatives 
-        of the errors with respect to the connection weights.
-
-        When the d{i} and a{i}' contain multiple examples (batchsize > 1),
-        all the example arrays are combined into one array in each cell.
-        For this operation, dW{i} = d{i} * a{i}', the result is one array
-        of the size of a single example of W{i}.
-        For 4 examples in 1 batch between 2 input nodes and 3 hidden nodes, 
-        the size of d{i} is 3x4 and the size of a{i}' is 4x2, 
-        and the result is a dW{i} (and W{i}) of size 3x2.
-        For the output node in one node pair, its 4 d examples and 4 input node examples
-        in the batch get individually multiplied and then summed to create 
-       that one node pair's resultant dW.
-        %} 
+        Update connection weights using the gradient descent method
         
-        for i = 1 : numHiddenLayers+1
-            dW{i} = d{i} * a{i}';
+        for j = 1 : numHiddenLayers+1
+        
+          dE_dW{j} = dE_dI{j} * dI{j}_dW{j}
+          dI{j}_dW{j} = a{j}
+        
+          dE_dW{j} = dE_dI{j} * a{j}' << the gradients of error w/r weights
+        
+          W{j} = W{j} - alpha * dE_dW{j}  << without L2 regularization
+ 
+        end
+        %}
+
+        for j = 1 : numHiddenLayers+1
+            dE_dW{j} = dE_dI{j} * a{j}';
             % L2 regularization is used for W, which is the lambda * W term 
-            W{i} = W{i} - alpha * (dW{i} - lambda * W{i}); 
+            W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
         end
 
 %         % update biases added to nodes in hidden layers
@@ -240,8 +254,8 @@ for tn = 1:size(train_x, 2)
     a{1} = train_x(:,tn);
     x = a{1};
     fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
-    for i = 2 : numHiddenLayers + 2
-        a{i} = sigmaFunc( W{i-1}*a{i-1} );
+    for j = 2 : numHiddenLayers + 2
+        a{j} = sigmaFunc( W{j-1}*a{j-1} );
     end
     
     yex = a{numHiddenLayers + 2};
@@ -277,8 +291,8 @@ tn = 2; % uses tn several places below, which single input to use
 a{1} = train_x(:,tn);
 x = a{1};
 fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
-for i = 2 : numHiddenLayers + 2
-    a{i} = sigmaFunc( W{i-1}*a{i-1} );
+for j = 2 : numHiddenLayers + 2
+    a{j} = sigmaFunc( W{j-1}*a{j-1} );
 end
 
 yex = a{numHiddenLayers + 2};

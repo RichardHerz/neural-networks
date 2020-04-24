@@ -1,23 +1,9 @@
 % neural network example
 % example of XOR from  https://www.mladdict.com/neural-network-simulator
-%
-% algorithm based on pp. 29=32 of Chap5.3-BackProp.pdf by Sargur Srihari 
-% lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
-% with modifications 
 
-%{
-Relationships in this XOR network: 
+% >>>> THiS IS SPECIAL - USES OLD CODE NOTATION 
 
-layer           input       hidden        output
-activation      a{1}         a{2}          a{3} to approx y 
-weight                W{1}         W{2} 
-
-%}
-
-% FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
-% https://en.wikipedia.org/wiki/Gradient_descent 
-
-% >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
+% >>>> THIS IS SPECIAL - DOES TWO ITERATIONS WITH FIXED INITIAL CONDITION
 
 clear all
 clc
@@ -128,7 +114,7 @@ for j = 1 : numepochs
         in that cell
         %}
         
-        % forward propagation
+        % Forward Propagation
         
         for i = 2 : numHiddenLayers + 2
             % without biases B
@@ -142,83 +128,14 @@ for j = 1 : numepochs
         a2 = a{2}
         a3 = a{3}
        
-        %{
-        Start Back-Propagation in order to train network 
-
-        The total error to be minimized is sum(0.5*(y - a).^2) at the output.
-
-        The gradient descent algorithm is used to update the connection 
-        weights between each pair of layers in order to minimize 
-        the total error at the final output nodes. This is done in the
-        "back" direction from the output layer back toward the input layer.
-
-        Relationships in this XOR network: 
-
-        layer           input      hidden        output
-        activation      a{1}         a{2}          a{3} to approx y  
-        weight                W{1}         W{2} 
-        deltas                       d{1}          d{2}
-        delta W               dW{1}        dW{2}
-
-        equations 
-          d{2} = -(y - a{3}) .* a{3} .* (1 - a{3});
-          d{1} = W{2}' * d{2} .* a{2} .* (1 - a{2});
-          dW{i} = d{i}*a{i}' 
-          W{i} = W{i} - alpha * (dW{i} - lambda * W{i});
-
-        The error gradients d{i} are the derivatives of the errors with 
-        respect to the activation values. The dW{i} below, which are used to 
-        adjust the weights, are the derivatives of the errors with respect to  
-        the connection weights. 
-
-        Starting at the output, and corresponding to the weights W{i} from 
-        layer i to the last output layer i+1, the error gradients d{i} = the 
-        negative of the derivatives of the total error with respect to the 
-        estimated output activation, -(y - a{i+1}), times the derivatives of 
-        the output activations a{i+1} with respect to the arguments of the 
-        sigma function (the a*(1-a) terms)
-        %}
+        % Back-Propagation in order to train network 
+        
         i = numHiddenLayers+1;
         d{i} = -(y - a{i+1}) .* a{i+1} .* (1 - a{i+1});
-
-        d2 = d{2}
-
-        %{
-        moving "back" toward the input, 
-        corresponding to the weights W{i} from layer i to i+1, the error
-        gradient d{i} = the weights W{i+1} times the gradient d{i+1}, times 
-        the derivatives of the activations a{i+1} with respect to the 
-        arguments of the sigma function (the a*(1-a) terms)
-        %}
+        
         for i = numHiddenLayers : -1 : 1
             d{i} = W{i+1}' * d{i+1} .* a{i+1} .* (1 - a{i+1});
         end 
-
-        d1 = d{1}
-
-        %{
-        update connection weights using the gradient descent method
-
-        The error gradients d{i} are the derivatives of the errors with 
-        respect to the activations a{i}. 
-
-        The dW{i}, which are used to adjust the weights, are the derivatives 
-        of the errors with respect to the connection weights.
-
-        When the d{i} and a{i}' contain multiple examples (batchsize > 1),
-        all the example arrays are combined into one array in each cell.
-        For this operation, dW{i} = d{i} * a{i}', the result is one array
-        of the size of a single example of W{i}.
-        For 4 examples in 1 batch between 2 input nodes and 3 hidden nodes, 
-        the size of d{i} is 3x4 and the size of a{i}' is 4x2, 
-        and the result is a dW{i} (and W{i}) of size 3x2.
-        For the output node in one node pair, its 4 d examples and 4 input node examples
-        in the batch get individually multiplied and then summed to create 
-        that one node pair's resultant dW.
-        %} 
-
-    %     dW{2}
-    %     ddWW2 = dW{2}
 
         for i = 1 : numHiddenLayers+1
 

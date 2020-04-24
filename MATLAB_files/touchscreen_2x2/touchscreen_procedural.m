@@ -5,7 +5,7 @@
 % USER INPUT = 2x2 array of 1 and 0
 aIn = [1 0; 1 0] 
 
-% initialize "training" array of arrays
+% initialize arrays of inputs 
 aaTr = zeros(2,2,6); 
 aaTr(:,:,1) = [1 0; 0 1]; % diag 1
 aaTr(:,:,2) = [0 1; 1 0]; % diag 2
