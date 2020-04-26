@@ -116,7 +116,7 @@ else
     figure(1)
     
     epochPlotCounter = epochPlotCounter + 1;
-    fprintf('epochPlotCounter = %i \n', epochPlotCounter)
+    fprintf('epochPlotCounter = %i \n', epochPlotCounter-1)
     
     % report current weights
     wi = W{1}
@@ -125,10 +125,12 @@ else
    % compute outputs and error with current weights
    % for this input aa{1}
      aa{1} = [1; 0];
-    for j = 2 : numHiddenLayers + 2
-        % without biases B
-        % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-    end
+        for j = 2 : numHiddenLayers + 2
+            % without biases B
+            % a{j} = sigmaFunc( W{j-1}*a{j-1} );
+            % with biases B
+            aa{j} = sigmaFunc(bsxfun( @plus, W{j-1}*aa{j-1}, B{j-1} ) );
+        end
     % note for this example with only 1 output node
     % don't need sum - but leave in case copy to other 
     % networks 
@@ -137,15 +139,15 @@ else
     % USE FINAL min & main
     maxim = 15.5;
     minim = -11.2;
-
+    % MUST USE IMAGE NOT IMAGESC 
     imspan = maxim-minim;
     rcm = 64;
     for j = 1:numHiddenLayers+1
         im = W{j};
         im = rcm * (im - minim)/imspan;
         im = im'; % so now row is start node, column is end node in next layer
-%         subplot(1,numHiddenLayers+1,j), imagesc(im);
-        subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
+        subplot(1,numHiddenLayers+1,j), image(im);
+%         subplot(1,numHiddenLayers+1,j), image(im), title(sprintf('W %i ',j));
     end
     cm = colormap(gray(64));
     cm = flipud(cm); % change 0 to white, 1 to black
@@ -388,7 +390,7 @@ for j = 1:numHiddenLayers+1
     im = W{j};
     im = rcm * (im - minim)/imspan;
     im = im'; % so now row is start node, column is end node in next layer
-    subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
+    subplot(1,numHiddenLayers+1,j), image(im), title(sprintf('W %i ',j));
 end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black

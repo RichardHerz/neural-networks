@@ -332,7 +332,7 @@ for j = 1:numHiddenLayers+1
     im = W{j};
     im = rcm * (im - minim)/imspan;
     im = im'; % so now row is start node, column is end node in next layer
-    subplot(1,numHiddenLayers+1,j), imagesc(im), title(sprintf('W %i ',j));
+    subplot(1,numHiddenLayers+1,j), image(im), title(sprintf('W %i ',j));
 end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black

@@ -32,9 +32,7 @@ batchsize = 4; % e.g., 4 for 4 random examples per batch
 
 ---------------------------------------------------
 
-NOTE THAT epochPlotCounter = 1  IS FOR INITIAL RANDOM WEIGHTS 
-
-epochPlotCounter = 1 
+----- INITIAL ----
 
 wi =
 
@@ -52,7 +50,7 @@ E =
 
     0.1672
 
-epochPlotCounter = 2 
+---- 10 percent -----
 
 wi =
 
@@ -70,7 +68,7 @@ E =
 
     0.1167
 
-epochPlotCounter = 3 
+---- 20 percent -----
 
 wi =
 
@@ -88,7 +86,7 @@ E =
 
     0.0988
 
-epochPlotCounter = 4 
+---- 30 percent -----
 
 wi =
 
@@ -106,7 +104,7 @@ E =
 
     0.0690
 
-epochPlotCounter = 5 
+---- 40 percent -----
 
 wi =
 
@@ -124,7 +122,7 @@ E =
 
     0.0296
 
-epochPlotCounter = 6 
+---- 50 percent -----
 
 wi =
 
@@ -142,7 +140,7 @@ E =
 
     0.0085
 
-epochPlotCounter = 7 
+---- 60 percent -----
 
 wi =
 
@@ -160,7 +158,7 @@ E =
 
     0.0035
 
-epochPlotCounter = 8 
+---- 70 percent -----
 
 wi =
 
@@ -178,7 +176,7 @@ E =
 
     0.0016
 
-epochPlotCounter = 9 
+---- 80 percent -----
 
 wi =
 
@@ -196,7 +194,7 @@ E =
 
    7.5436e-04
 
-epochPlotCounter = 10 
+---- 90 percent -----
 
 wi =
 
@@ -214,7 +212,7 @@ E =
 
    3.4785e-04
    
-FINAL ERROR AT END PROGRAM
+---- 100 percent -----
 
 E =
 
