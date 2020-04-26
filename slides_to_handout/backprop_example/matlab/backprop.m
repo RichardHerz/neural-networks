@@ -1,3 +1,7 @@
+%
+% code by Richard K. Herz, github.com/RichardHerz, www.ReactorLab.net 
+% 
+
 % generate data for figure to illustrate
 % gradient descent method
 %

@@ -1,3 +1,7 @@
+%
+% code by Richard K. Herz, github.com/RichardHerz, www.ReactorLab.net 
+% 
+
 % neural network example
 % example of XOR from  https://www.mladdict.com/neural-network-simulator
 %

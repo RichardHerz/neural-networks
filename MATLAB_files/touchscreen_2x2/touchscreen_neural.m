@@ -1,3 +1,7 @@
+%
+% code by Richard K. Herz, github.com/RichardHerz, www.ReactorLab.net 
+% 
+
 % neural network example 
 % example of a 2x2 "touchscreen" 
 % the network is trained to detect vertical, horizontal & diagonal "lines" 
