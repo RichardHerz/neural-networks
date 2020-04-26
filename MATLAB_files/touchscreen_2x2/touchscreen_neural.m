@@ -138,7 +138,7 @@ for j = 1 : numepochs
         
         for j = 2 : numHiddenLayers + 2
             % without biases B
-            % a{i} = sigmaFunc( W{i-1}*a{i-1} );
+            % a{j} = sigmaFunc( W{j-1}*a{j-1} );
             % with biases B
             a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
         end
