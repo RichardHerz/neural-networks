@@ -24,8 +24,9 @@ weight                W{1}         W{2}
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
 fprintf('------------ run separator ------------ \n')
-clear clc
+close all
 clear all 
+clear clc
 
 numInputNodes = 2;
 numOutputNodes = 1;
