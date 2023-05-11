@@ -6,9 +6,9 @@
 % example of a 2x2 "touchscreen" 
 % the network is trained to detect vertical, horizontal & diagonal "lines" 
 %
-% algorithm based on pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% with modifications, this algorithm is based on 
+% pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
-% with modifications 
 
 % with 4 hidden layers of 80 neurons each, usually get all good 
 % with 4 hidden layers of 60 neurons each, most of time get all good but
@@ -20,8 +20,9 @@
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
 fprintf('------------ run separator ------------ \n')
-clear clc
 clear all 
+close all 
+clc
 
 numInputNodes = 4;
 numOutputNodes = 4;
@@ -111,14 +112,11 @@ else
 end
 
 % initialize biases
-initBias = 0;
-Bh = initBias * ones(numHiddenNodes,1);
-Bo = zeros(numOutputNodes,1);
-for j = 1:numHiddenLayers
-    B{j} = Bh;
+% one scalar bias for each hidden layer plus one for output layer
+% see alternative code lines below for computing with and without biases
+for j = 1:numHiddenLayers+1
+    B{j} = 0;
 end
-B{numHiddenLayers+1} = Bo;
-dB = B;
 
 for j = 1 : numepochs
     % randomly rearrange the training data for each epoch
@@ -143,8 +141,15 @@ for j = 1 : numepochs
         for j = 2 : numHiddenLayers + 2
             % without biases B
             % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-            % with biases B
-            a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
+
+            % with biases B from Srihari 
+            % a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
+
+            % NEW with biases B 
+            % see help on bsxfun: 
+            %    In MATLAB® R2016b and later, you can directly use 
+            %    operators instead of bsxfun
+            a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1});
         end
               
         %{
@@ -226,12 +231,13 @@ for j = 1 : numepochs
             W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
         end
 
-%         % update biases added to nodes in hidden layers
-%         for i = 1 : numHiddenLayers
-%             dB{i} = sum(d{i},2);
-%             B{i} = B{i} + alpha * dB{i};
-%         end
-        
+        % update biases
+        for i = 1 : numHiddenLayers+1
+            % B{i} = B{i} - alpha * sum(dE_dI{i},2); % from Srihari 
+            % Srihari's code creates a bias in layer for each input in batch
+            % but we want to keep bias a scalar for each layer 
+            B{i} = B{i} - alpha * mean(mean(dE_dI{i}));
+        end
     end
 end
 
@@ -246,8 +252,6 @@ save('WS')
 
 clear all
 load('WS.mat')
-
-clc
 
 % check all training examples
 
@@ -312,6 +316,21 @@ else
     fprintf('answer is %s >> ERROR \n\n',answer(tIex))
     tsum = tsum + 1;
 end
+
+% get max and min for biases
+maxim = -999;
+minim = 999;
+for j = 1:numHiddenLayers+1
+    if B{j} > maxim
+        maxim = B{j};
+    end
+    if B{j} < minim
+        minim = B{j};
+    end
+end
+
+fprintf('----- biases -------- \n')
+fprintf('bias min = %g, bias max = %g \n',minim,maxim)
 
 %% imaging node activation values (a)
 
