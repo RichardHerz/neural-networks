@@ -218,7 +218,6 @@ for j = 1 : numepochs
         for j = 1 : numHiddenLayers+1
             dE_dW{j} = dE_dI{j} * a{j}';
             % L2 regularization is used for W, which is the lambda * W term 
-%             W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
             W{j} = W{j} - alpha * (dE_dW{j} + lambda * W{j}); 
         end
 
@@ -227,7 +226,7 @@ for j = 1 : numepochs
             % B{i} = B{i} - alpha * sum(dE_dI{i},2); % from Srihari 
             % Srihari's code creates a bias in layer for each input in batch
             % but we want to keep bias a scalar for each layer 
-            B{i} = B{i} - alpha * sum(sum(dE_dI{i}));
+            B{i} = B{i} - alpha * mean(mean(dE_dI{i}));
         end
         
     end
