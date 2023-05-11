@@ -2,12 +2,15 @@
 % code by Richard K. Herz, github.com/RichardHerz, www.ReactorLab.net 
 % 
 
-% neural network example
+% see a neural network example
 % example of XOR from  https://www.mladdict.com/neural-network-simulator
 %
-% algorithm based on pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
+% with modifications, this algorithm is based on 
+% pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
-% with modifications 
+
+% THIS CODE FOR FULLY CONNECTED NETWORK WITH SAME NUMBER NODES IN
+% EACH HIDDEN LAYER 
 
 %{
 Relationships in this XOR network: 
@@ -15,6 +18,7 @@ Relationships in this XOR network:
 layer           input       hidden        output
 activation      a{1}         a{2}          a{3} to approx y 
 weight                W{1}         W{2} 
+bias                         B{1}          B{2}
 
 %}
 
@@ -23,24 +27,26 @@ weight                W{1}         W{2}
 
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
-fprintf('------------ run separator ------------ \n')
 close all
 clear all 
-clear clc
+clc
+fprintf('------------ run separator ------------ \n')
+
+format shortG
 
 numInputNodes = 2;
 numOutputNodes = 1;
 numHiddenNodes = 3; % nodes per hidden layer, must be >= 1
-numHiddenLayers = 1;
+numHiddenLayers = 1; % xxx was 1
 
 % Learning rate alpha 
 alpha = 0.01;
 % Lambda is for regularization 
 lambda = 0.001;
 % Num of iterations 
-numepochs = 1e5;
+numepochs = 1e5; % xxx was 1e5 
 % size of batches of inputs to train at same time
-batchsize = 4; % e.g., 4 for 4 random examples per batch
+batchsize = 4; % xxx was 4 for 4 random examples per batch
 
 %% Training 
 
@@ -93,14 +99,11 @@ else
 end
 
 % initialize biases
-initBias = 0;
-Bh = initBias * ones(numHiddenNodes,1);
-Bo = zeros(numOutputNodes,1);
-for j = 1:numHiddenLayers
-    B{j} = Bh;
+% one scalar bias for each hidden layer plus one for output layer
+% see alternative code lines below for computing with and without biases
+for j = 1:numHiddenLayers+1
+    B{j} = 0;
 end
-B{numHiddenLayers+1} = Bo;
-dB = B;
 
 for j = 1 : numepochs
     % randomly rearrange the training data for each epoch
@@ -123,11 +126,21 @@ for j = 1 : numepochs
         % Forward propagation
         
         for j = 2 : numHiddenLayers + 2
+            
             % without biases B
             % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-            % with biases B
-            a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
+
+            % with biases B from Srihari 
+            % a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
+
+            % NEW with biases B 
+            % see help on bsxfun: 
+            %    In MATLAB® R2016b and later, you can directly use 
+            %    operators instead of bsxfun
+            a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1});
         end
+
+      % Back propagation 
               
         %{
         Start Back-Propagation in order to train network and
@@ -139,9 +152,9 @@ for j = 1 : numepochs
         layer           input      hidden        output
         activation      a{1}         a{2}          a{3} to approx y  
         weight                W{1}         W{2} 
- 
+        bias                         B{1}          B{2}
+
         Error
-        
           j = numHiddenLayers+1
           E = 0.5 * ( y - a{j+1} ).^2
         
@@ -205,14 +218,17 @@ for j = 1 : numepochs
         for j = 1 : numHiddenLayers+1
             dE_dW{j} = dE_dI{j} * a{j}';
             % L2 regularization is used for W, which is the lambda * W term 
-            W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
+%             W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
+            W{j} = W{j} - alpha * (dE_dW{j} + lambda * W{j}); 
         end
 
-%         % update biases added to nodes in hidden layers
-%         for i = 1 : numHiddenLayers
-%             dB{i} = sum(d{i},2);
-%             B{i} = B{i} + alpha * dB{i};
-%         end
+        % update biases
+        for i = 1 : numHiddenLayers+1
+            % B{i} = B{i} - alpha * sum(dE_dI{i},2); % from Srihari 
+            % Srihari's code creates a bias in layer for each input in batch
+            % but we want to keep bias a scalar for each layer 
+            B{i} = B{i} - alpha * sum(sum(dE_dI{i}));
+        end
         
     end
 end
@@ -228,8 +244,6 @@ save('WS')
 clear all
 load('WS.mat')
 
-clc
-
 % check all training examples
 
 tsum = 0; % for count of number of errors
@@ -240,7 +254,8 @@ for tn = 1:size(train_x, 2)
     x = a{1};
     fprintf('input: %i %i \n',x(1),x(2))
     for j = 2 : numHiddenLayers + 2
-        a{j} = sigmaFunc( W{j-1}*a{j-1} );
+%         a{j} = sigmaFunc( W{j-1}*a{j-1} ); % without bias 
+        a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias
     end
     
     yex = a{numHiddenLayers + 2};
@@ -250,9 +265,9 @@ for tn = 1:size(train_x, 2)
     [tMax tIans] = max(y);
     
     if round(yex) == round(y)
-        fprintf('answer is good %i \n',yex)
+        fprintf('answer is good %g \n',yex)
     else
-        fprintf('answer is BAD %i \n\n',yex)
+        fprintf('answer is BAD %g \n\n',yex)
         tsum = tsum + 1;
     end
     
@@ -272,7 +287,8 @@ a{1} = train_x(:,tn);
 x = a{1};
 fprintf('input: %i %i \n',x(1),x(2))
 for j = 2 : numHiddenLayers + 2
-    a{j} = sigmaFunc( W{j-1}*a{j-1} );
+%     a{j} = sigmaFunc( W{j-1}*a{j-1} ); % without bias
+    a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias
 end
 
 yex = a{numHiddenLayers + 2};
@@ -290,6 +306,21 @@ else
     fprintf('answer is BAD \n')
     tsum = tsum + 1;
 end
+
+% get max and min for biases
+maxim = -999;
+minim = 999;
+for j = 1:numHiddenLayers+1
+    if B{j} > maxim
+        maxim = B{j};
+    end
+    if B{j} < minim
+        minim = B{j};
+    end
+end
+
+fprintf('----- biases -------- \n')
+fprintf('bias min = %g, bias max = %g \n',minim,maxim)
 
 %% imaging node activation values (a)
 
@@ -316,11 +347,11 @@ colormap(cm);
 fprintf('----- image connection weights -------- \n')
 % get min and max of entire set so can image
 % on same color scale
-maxim = -99;
-minim = 99;
+maxim = -999;
+minim = 999;
 for j = 2:numHiddenLayers+1
-    tmaxim = max(max(W{j}))
-    tminim = min(min(W{j}))
+    tmaxim = max(max(W{j}));
+    tminim = min(min(W{j}));
     if tmaxim > maxim
         maxim = tmaxim;
     end
@@ -328,8 +359,10 @@ for j = 2:numHiddenLayers+1
         minim = tminim;
     end
 end
-imspan = maxim-minim;
+
 fprintf('weight min = %g, weight max = %g \n',minim,maxim)
+
+imspan = maxim-minim;
 rcm = 64;
 % colormap(jet(rcm));
 figure('Name','Connection weights', 'NumberTitle','off')
