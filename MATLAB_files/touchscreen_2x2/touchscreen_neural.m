@@ -17,6 +17,8 @@
 % FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
 % https://en.wikipedia.org/wiki/Gradient_descent 
 
+% THIS VERSION HAS A SINGLE BIAS FOR EACH INDIVIDUAL HIDDEN AND OUTPUT LAYER 
+
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
 fprintf('------------ run separator ------------ \n')

@@ -12,6 +12,8 @@
 % THIS CODE FOR FULLY CONNECTED NETWORK WITH SAME NUMBER NODES IN
 % EACH HIDDEN LAYER 
 
+% THIS VERSION HAS A SINGLE BIAS FOR EACH INDIVIDUAL HIDDEN AND OUTPUT LAYER
+
 %{
 Relationships in this XOR network: 
 
@@ -307,17 +309,16 @@ else
 end
 
 % get max and min for biases
-maxim = -999;
-minim = 999;
+maxim = -9999;
+minim = 9999;
 for j = 1:numHiddenLayers+1
-    if B{j} > maxim
-        maxim = B{j};
-    end
-    if B{j} < minim
-        minim = B{j};
-    end
+        if max(B{j}) > maxim
+            maxim = max(B{j});
+        end
+        if min(B{j}) < minim
+            minim = min(B{j});
+        end
 end
-
 fprintf('----- biases -------- \n')
 fprintf('bias min = %g, bias max = %g \n',minim,maxim)
 
