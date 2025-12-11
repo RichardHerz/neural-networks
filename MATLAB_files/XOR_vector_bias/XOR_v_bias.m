@@ -15,7 +15,14 @@
 % THIS VERSION HAS A BIAS FOR EACH INDIVIDUAL HIDDEN AND OUTPUT NODE
 
 %{
-Relationships in this XOR network: 
+For the XOR network with one hidden layer, 
+2 nodes per hidden layer only works when you have biases 
+3 nodes per hidden layer works with or without biases but 
+is more likely to work with biases 
+%}
+
+%{
+Relationships in this XOR network with one hidden layer: 
 
 layer           input       hidden        output
 activation      a{1}         a{2}          a{3} to approx y 
@@ -38,8 +45,8 @@ format shortG
 
 numInputNodes = 2;
 numOutputNodes = 1;
+numHiddenLayers = 1;
 numHiddenNodes = 3; % nodes per hidden layer, must be >= 1
-numHiddenLayers = 1; % xxx was 1
 
 % Learning rate alpha 
 alpha = 0.01;
@@ -108,9 +115,12 @@ end
 % end
 
 % intialize biases for each node 
-% initialize node activations
-Bh = zeros(numHiddenNodes,1); 
-Bo = zeros(numOutputNodes,1);
+% EITHER all zeros
+% Bh = zeros(numHiddenNodes,1); 
+% Bo = zeros(numOutputNodes,1);
+% OR slightly off zero
+Bh = 0.01 * ones(numHiddenNodes,1); 
+Bo = 0.01 * ones(numOutputNodes,1);
 for j = 1:numHiddenLayers
     B{j} = Bh;
 end
@@ -136,18 +146,7 @@ for j = 1 : numepochs
                
         % Forward propagation
         
-        for j = 2 : numHiddenLayers + 2
-            
-            % without biases B
-            % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-
-            % with biases B from Srihari 
-            % a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
-
-            % NEW with biases B 
-            % see help on bsxfun: 
-            %    In MATLAB® R2016b and later, you can directly use 
-            %    operators instead of bsxfun
+        for j = 2 : numHiddenLayers + 2 
             a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1});
         end
 
@@ -235,6 +234,9 @@ for j = 1 : numepochs
         % update biases
         for i = 1 : numHiddenLayers+1
             % get mean along rows of each node's batch element results
+            % mean(x,2) operates along DIM 2 (across the columns), 
+            % producing mean of each row of x
+            % X(DIM 1, DIM 2) >> x(row, col)
             B{i} = B{i} - alpha * mean(dE_dI{i},2);
         end
     end
@@ -261,8 +263,7 @@ for tn = 1:size(train_x, 2)
     x = a{1};
     fprintf('input: %i %i \n',x(1),x(2))
     for j = 2 : numHiddenLayers + 2
-%         a{j} = sigmaFunc( W{j-1}*a{j-1} ); % without bias 
-        a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias
+        a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias B
     end
     
     yex = a{numHiddenLayers + 2};
@@ -272,21 +273,23 @@ for tn = 1:size(train_x, 2)
     [tMax tIans] = max(y);
     
     if round(yex) == round(y)
-        fprintf('answer is good %g \n',yex)
+        fprintf('this answer is good %g \n',yex)
     else
-        fprintf('answer is BAD %g \n\n',yex)
+        fprintf('this answer is BAD %g \n\n',yex)
         tsum = tsum + 1;
     end
     
 end
     
 if tsum == 0
-    fprintf('GOOD - no errors \n')
+    fprintf('ALL GOOD - no errors \n')
 else
-    fprintf('BAD - %i errors found \n', tsum)
+    fprintf('SOME BAD - %i errors found \n', tsum)
 end
 
 %% set an single input to image below 
+
+fprintf('----- one example for plotting -------- \n')
 
 tn = 2; % uses tn several places below, which single input to use 
 
@@ -294,8 +297,7 @@ a{1} = train_x(:,tn);
 x = a{1};
 fprintf('input: %i %i \n',x(1),x(2))
 for j = 2 : numHiddenLayers + 2
-%     a{j} = sigmaFunc( W{j-1}*a{j-1} ); % without bias
-    a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias
+    a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1}); % with bias B
 end
 
 yex = a{numHiddenLayers + 2};
@@ -308,10 +310,9 @@ fprintf('y is %g \n',y)
 fprintf('yex is %g \n',yex)
 
 if round(y) == round(yex)
-    fprintf('answer is good \n')
+    fprintf('this answer is good \n')
 else
-    fprintf('answer is BAD \n')
-    tsum = tsum + 1;
+    fprintf('this answer is BAD \n')
 end
 
 % get max and min for biases
@@ -330,7 +331,7 @@ fprintf('bias min = %g, bias max = %g \n',minim,maxim)
 
 %% imaging node activation values (a)
 
-fprintf('----- image node values -------- \n')
+fprintf('----- see image of node values -------- \n')
 % get min and max of entire set so can image
 % on same color scale
 % for node values with sigma function, range is 0-1
@@ -350,7 +351,7 @@ colormap(cm);
 
 %% imaging connection weights (W)
 
-fprintf('----- image connection weights -------- \n')
+fprintf('----- see image of connection weights -------- \n')
 % get min and max of entire set so can image
 % on same color scale
 maxim = -999;
@@ -381,3 +382,13 @@ end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black
 colormap(cm);
+
+% for easy viewing in output, put final notice here 
+fprintf('----- SUMMARY ---------  \n')
+fprintf('hidden layers = %i, nodes per hidden layer = %i \n', numHiddenLayers, numHiddenNodes)
+if tsum == 0
+    fprintf('ALL GOOD - no errors \n')
+else
+    fprintf('SOME BAD - %i errors found \n', tsum)
+end
+
