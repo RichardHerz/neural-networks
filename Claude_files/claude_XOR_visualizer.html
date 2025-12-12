@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude made this XOR Neural Network Visualizer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    .controls {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .toggle-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 12px 24px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .toggle-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .toggle-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .train-btn {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .train-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .output-display {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .output-value {
+      font-size: 3em;
+      font-weight: bold;
+      color: #667eea;
+      margin: 10px 0;
+    }
+
+    .output-label {
+      font-size: 1.2em;
+      color: #666;
+    }
+
+    #network-canvas {
+      display: block;
+      margin: 0 auto;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .training-status {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .epoch-count {
+      font-weight: 600;
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>XOR Neural Network (2-2-1)</h1>
+    
+    <div class="controls">
+      <div class="input-group">
+        <label>Input A</label>
+        <div class="toggle-buttons">
+          <button class="toggle-btn active" data-input="a" data-value="0">0</button>
+          <button class="toggle-btn" data-input="a" data-value="1">1</button>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label>Input B</label>
+        <div class="toggle-buttons">
+          <button class="toggle-btn active" data-input="b" data-value="0">0</button>
+          <button class="toggle-btn" data-input="b" data-value="1">1</button>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>&nbsp;</label>
+        <button class="train-btn" id="trainBtn">Train Network</button>
+      </div>
+    </div>
+
+    <div class="output-display">
+      <div class="output-label">XOR Output</div>
+      <div class="output-value" id="output">0.0000</div>
+    </div>
+
+    <canvas id="network-canvas" width="800" height="400"></canvas>
+
+    <div class="training-status">
+      <span id="trainingStatus">Click "Train Network" to begin training</span>
+    </div>
+  </div>
+
+  <script>
+    class NeuralNetwork {
+      constructor() {
+        this.weightsInputHidden = [
+          [Math.random() * 2 - 1, Math.random() * 2 - 1],
+          [Math.random() * 2 - 1, Math.random() * 2 - 1]
+        ];
+        this.weightsHiddenOutput = [
+          Math.random() * 2 - 1,
+          Math.random() * 2 - 1
+        ];
+        this.biasHidden = [Math.random() * 2 - 1, Math.random() * 2 - 1];
+        this.biasOutput = Math.random() * 2 - 1;
+        this.learningRate = 0.5;
+        this.inputs = [0, 0];
+        this.hidden = [0, 0];
+        this.output = 0;
+      }
+      
+      sigmoid(x) {
+        return 1 / (1 + Math.exp(-x));
+      }
+      
+      sigmoidDerivative(x) {
+        return x * (1 - x);
+      }
+      
+      feedForward(inputs) {
+        this.inputs = inputs;
+        
+        this.hidden = [];
+        for (let i = 0; i < 2; i++) {
+          let sum = this.biasHidden[i];
+          for (let j = 0; j < 2; j++) {
+            sum += inputs[j] * this.weightsInputHidden[j][i];
+          }
+          this.hidden[i] = this.sigmoid(sum);
+        }
+        
+        let sum = this.biasOutput;
+        for (let i = 0; i < 2; i++) {
+          sum += this.hidden[i] * this.weightsHiddenOutput[i];
+        }
+        this.output = this.sigmoid(sum);
+        
+        return this.output;
+      }
+      
+      train(inputs, target) {
+        this.feedForward(inputs);
+        
+        const outputError = target - this.output;
+        const outputDelta = outputError * this.sigmoidDerivative(this.output);
+        
+        const hiddenErrors = [];
+        const hiddenDeltas = [];
+        for (let i = 0; i < 2; i++) {
+          hiddenErrors[i] = outputDelta * this.weightsHiddenOutput[i];
+          hiddenDeltas[i] = hiddenErrors[i] * this.sigmoidDerivative(this.hidden[i]);
+        }
+        
+        for (let i = 0; i < 2; i++) {
+          this.weightsHiddenOutput[i] += this.learningRate * outputDelta * this.hidden[i];
+        }
+        this.biasOutput += this.learningRate * outputDelta;
+        
+        for (let i = 0; i < 2; i++) {
+          for (let j = 0; j < 2; j++) {
+            this.weightsInputHidden[i][j] += this.learningRate * hiddenDeltas[j] * inputs[i];
+          }
+        }
+        for (let i = 0; i < 2; i++) {
+          this.biasHidden[i] += this.learningRate * hiddenDeltas[i];
+        }
+      }
+    }
+
+    const canvas = document.getElementById('network-canvas');
+    const ctx = canvas.getContext('2d');
+    const nn = new NeuralNetwork();
+    
+    let inputA = 0;
+    let inputB = 0;
+
+    // Toggle button handlers
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const input = e.target.dataset.input;
+        const value = parseInt(e.target.dataset.value);
+        
+        // Update button states
+        e.target.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        // Update input values
+        if (input === 'a') inputA = value;
+        if (input === 'b') inputB = value;
+        
+        updateNetwork();
+      });
+    });
+
+    // Train button handler
+    document.getElementById('trainBtn').addEventListener('click', () => {
+      const trainingData = [
+        { inputs: [0, 0], target: 0 },
+        { inputs: [0, 1], target: 1 },
+        { inputs: [1, 0], target: 1 },
+        { inputs: [1, 1], target: 0 }
+      ];
+
+      document.getElementById('trainingStatus').innerHTML = 'Training... <span class="epoch-count">0</span> epochs';
+      
+      let epoch = 0;
+      const maxEpochs = 10000;
+      
+      const trainStep = () => {
+        for (let i = 0; i < 100; i++) {
+          for (let data of trainingData) {
+            nn.train(data.inputs, data.target);
+          }
+          epoch++;
+        }
+        
+        document.querySelector('.epoch-count').textContent = epoch;
+        
+        if (epoch < maxEpochs) {
+          requestAnimationFrame(trainStep);
+        } else {
+          document.getElementById('trainingStatus').innerHTML = `Training complete! <span class="epoch-count">${epoch}</span> epochs`;
+          updateNetwork();
+        }
+      };
+      
+      trainStep();
+    });
+
+    function drawNeuron(x, y, value, label) {
+      const radius = 30;
+      const intensity = Math.min(255, Math.floor(value * 255));
+      
+      // Draw outer circle
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${intensity}, ${100 + intensity/2}, ${255 - intensity/2})`;
+      ctx.fill();
+      ctx.strokeStyle = '#667eea';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Draw value
+      ctx.fillStyle = 'white';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(value.toFixed(3), x, y);
+      
+      // Draw label
+      ctx.fillStyle = '#333';
+      ctx.font = '12px Arial';
+      ctx.fillText(label, x, y + radius + 20);
+    }
+
+    function drawConnection(x1, y1, x2, y2, weight) {
+      const strength = Math.abs(weight);
+      const opacity = Math.min(1, strength);
+      
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = weight > 0 
+        ? `rgba(102, 126, 234, ${opacity})` 
+        : `rgba(234, 102, 102, ${opacity})`;
+      ctx.lineWidth = 1 + strength * 2;
+      ctx.stroke();
+    }
+
+    function drawNetwork() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const inputX = 150;
+      const hiddenX = 400;
+      const outputX = 650;
+      const y1 = 120;
+      const y2 = 280;
+      const yMiddle = 200;
+      
+      // Draw connections (input to hidden)
+      for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 2; j++) {
+          const startY = i === 0 ? y1 : y2;
+          const endY = j === 0 ? y1 : y2;
+          drawConnection(inputX, startY, hiddenX, endY, nn.weightsInputHidden[i][j]);
+        }
+      }
+      
+      // Draw connections (hidden to output)
+      for (let i = 0; i < 2; i++) {
+        const startY = i === 0 ? y1 : y2;
+        drawConnection(hiddenX, startY, outputX, yMiddle, nn.weightsHiddenOutput[i]);
+      }
+      
+      // Draw neurons
+      drawNeuron(inputX, y1, nn.inputs[0], 'Input A');
+      drawNeuron(inputX, y2, nn.inputs[1], 'Input B');
+      
+      drawNeuron(hiddenX, y1, nn.hidden[0], 'Hidden 1');
+      drawNeuron(hiddenX, y2, nn.hidden[1], 'Hidden 2');
+      
+      drawNeuron(outputX, yMiddle, nn.output, 'Output');
+      
+      // Draw layer labels
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Input Layer', inputX, 50);
+      ctx.fillText('Hidden Layer', hiddenX, 50);
+      ctx.fillText('Output Layer', outputX, 50);
+    }
+
+    function updateNetwork() {
+      const output = nn.feedForward([inputA, inputB]);
+      document.getElementById('output').textContent = output.toFixed(4);
+      drawNetwork();
+    }
+
+    // Initial draw
+    updateNetwork();
+  </script>
+</body>
+</html>
