@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<body>
+  See browser console for output. <br>
+  Claude generated this network to solve the XOR problem
+<script>
+
+// Network Architecture Configuration
+const NUM_HIDDEN_LAYERS = 4;
+const NODES_PER_HIDDEN_LAYER = [60]; // Array: one entry per hidden layer
+
+// Training parameters
+const LEARNING_RATE = 0.5;
+const EPOCHS = 10000;
+
+// XOR training data
+const inputs = [
+    [1, 0, 0, 0],
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1],
+];
+const targets = [[1], [1], [1], [1], [1]];
+
+// Initialize network weights and biases
+function initializeNetwork() {
+    const network = { weights: [], biases: [] };
+    
+    // Input layer to first hidden layer
+    const inputSize = 2;
+    network.weights.push(randomMatrix(inputSize, NODES_PER_HIDDEN_LAYER[0]));
+    network.biases.push(randomMatrix(1, NODES_PER_HIDDEN_LAYER[0]));
+    
+    // Hidden layer to hidden layer
+    for (let i = 1; i < NUM_HIDDEN_LAYERS; i++) {
+        network.weights.push(randomMatrix(NODES_PER_HIDDEN_LAYER[i-1], NODES_PER_HIDDEN_LAYER[i]));
+        network.biases.push(randomMatrix(1, NODES_PER_HIDDEN_LAYER[i]));
+    }
+    
+    // Last hidden layer to output
+    const lastHiddenSize = NODES_PER_HIDDEN_LAYER[NUM_HIDDEN_LAYERS - 1];
+    network.weights.push(randomMatrix(lastHiddenSize, 1));
+    network.biases.push(randomMatrix(1, 1));
+    
+    return network;
+}
+
+function randomMatrix(rows, cols) {
+    return Array(rows).fill().map(() => 
+        Array(cols).fill().map(() => Math.random() * 2 - 1)
+    );
+}
+
+function sigmoid(x) {
+    return 1 / (1 + Math.exp(-x));
+}
+
+function sigmoidDerivative(x) {
+    return x * (1 - x);
+}
+
+function matrixMultiply(a, b) {
+    const result = [];
+    for (let i = 0; i < a.length; i++) {
+        result[i] = [];
+        for (let j = 0; j < b[0].length; j++) {
+            let sum = 0;
+            for (let k = 0; k < b.length; k++) {
+                sum += a[i][k] * b[k][j];
+            }
+            result[i][j] = sum;
+        }
+    }
+    return result;
+}
+
+function matrixAdd(a, b) {
+    return a.map((row, i) => row.map((val, j) => val + b[0][j]));
+}
+
+function matrixApply(matrix, func) {
+    return matrix.map(row => row.map(func));
+}
+
+// Forward propagation
+function forward(input, network) {
+    const activations = [input];
+    
+    // Through all layers
+    for (let i = 0; i < network.weights.length; i++) {
+        const z = matrixAdd(
+            matrixMultiply(activations[i], network.weights[i]),
+            network.biases[i]
+        );
+        activations.push(matrixApply(z, sigmoid));
+    }
+    
+    return activations;
+}
+
+// Backpropagation
+function backward(activations, target, network) {
+    const deltas = [];
+    const numLayers = network.weights.length;
+    
+    // Output layer error
+    const outputError = activations[numLayers].map((row, i) => 
+        row.map((val, j) => target[i][j] - val)
+    );
+    deltas.unshift(outputError.map((row, i) => 
+        row.map((val, j) => val * sigmoidDerivative(activations[numLayers][i][j]))
+    ));
+    
+    // Hidden layers errors (backpropagate)
+    for (let i = numLayers - 1; i > 0; i--) {
+        const error = matrixMultiply(deltas[0], transpose(network.weights[i]));
+        deltas.unshift(error.map((row, r) => 
+            row.map((val, c) => val * sigmoidDerivative(activations[i][r][c]))
+        ));
+    }
+    
+    // Update weights and biases
+    for (let i = 0; i < network.weights.length; i++) {
+        const weightDeltas = matrixMultiply(transpose(activations[i]), deltas[i]);
+        network.weights[i] = network.weights[i].map((row, r) => 
+            row.map((val, c) => val + LEARNING_RATE * weightDeltas[r][c])
+        );
+        network.biases[i] = network.biases[i].map((row, r) => 
+            row.map((val, c) => val + LEARNING_RATE * deltas[i].reduce((sum, dRow) => sum + dRow[c], 0))
+        );
+    }
+}
+
+function transpose(matrix) {
+    return matrix[0].map((_, i) => matrix.map(row => row[i]));
+}
+
+// Training
+function train() {
+    const network = initializeNetwork();
+    
+    console.log(`Training network with ${NUM_HIDDEN_LAYERS} hidden layer(s): ${NODES_PER_HIDDEN_LAYER.join(', ')} nodes`);
+    
+    for (let epoch = 0; epoch < EPOCHS; epoch++) {
+        for (let i = 0; i < inputs.length; i++) {
+            const activations = forward([inputs[i]], network);
+            backward(activations, [targets[i]], network);
+        }
+        
+        if (epoch % 1000 === 0) {
+            let totalError = 0;
+            for (let i = 0; i < inputs.length; i++) {
+                const activations = forward([inputs[i]], network);
+                const output = activations[activations.length - 1][0][0];
+                totalError += Math.pow(targets[i][0] - output, 2);
+            }
+            console.log(`Epoch ${epoch}, Error: ${(totalError / inputs.length).toFixed(6)}`);
+        }
+    }
+    
+    return network;
+}
+
+// Test the network
+const trainedNetwork = train();
+
+console.log("\nFinal predictions:");
+inputs.forEach((input, i) => {
+    const activations = forward([input], trainedNetwork);
+    const output = activations[activations.length - 1][0][0];
+    console.log(`${input} => ${output.toFixed(4)} (target: ${targets[i][0]})`);
+});
+
+</script>
+</body>
+</html>

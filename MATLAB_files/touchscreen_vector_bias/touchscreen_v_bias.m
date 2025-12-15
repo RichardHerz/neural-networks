@@ -28,8 +28,12 @@ clc
 
 numInputNodes = 4;
 numOutputNodes = 4;
-numHiddenNodes = 60; % nodes per hidden layer
-numHiddenLayers = 4;
+
+% numHiddenNodes = 60; % nodes per hidden layer
+% numHiddenLayers = 4;
+
+numHiddenNodes = 20; % nodes per hidden layer
+numHiddenLayers = 3;
 
 % Learning rate alpha 
 alpha = 0.01;
@@ -316,7 +320,6 @@ if tIex == tIans
     fprintf('answer is %s \n\n',answer(tIex))
 else
     fprintf('answer is %s >> ERROR \n\n',answer(tIex))
-    tsum = tsum + 1;
 end
 
 % get max and min for biases
@@ -394,3 +397,9 @@ end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black
 colormap(cm);
+
+if tsum == 0
+    fprintf('GOOD - no errors \n\n')
+else
+    fprintf('BAD - %i errors found \n\n', tsum)
+end
