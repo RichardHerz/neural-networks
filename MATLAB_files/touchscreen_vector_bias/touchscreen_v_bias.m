@@ -119,8 +119,14 @@ end
 
 % intialize biases for each node 
 % initialize node activations
+
+% NOTE: random less successful than zeros 
+% Bh = 2*rand(numHiddenNodes,1) - 1;
+% Bo = 2*rand(numOutputNodes,1) - 1;
+
 Bh = zeros(numHiddenNodes,1); 
 Bo = zeros(numOutputNodes,1);
+
 for j = 1:numHiddenLayers
     B{j} = Bh;
 end
