@@ -2,66 +2,68 @@
 % code by Richard K. Herz, github.com/RichardHerz, www.ReactorLab.net 
 % 
 
-% neural network example 
-% example of a 2x2 "touchscreen" 
-% the network is trained to detect vertical, horizontal & diagonal "lines" 
+% see a neural network example
+% example of XOR from  https://www.mladdict.com/neural-network-simulator
 %
 % with modifications, this algorithm is based on 
 % pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
 
-% with 4 hidden layers of 80 neurons each, usually get all good 
-% with 4 hidden layers of 60 neurons each, most of time get all good but
-% check
+% THIS CODE FOR FULLY CONNECTED NETWORK WITH SAME NUMBER NODES IN
+% EACH HIDDEN LAYER 
+
+% THIS VERSION HAS A BIAS FOR EACH INDIVIDUAL HIDDEN AND OUTPUT NODE
+
+%{
+For the XOR network with one hidden layer, 
+2 nodes per hidden layer only works when you have biases 
+3 nodes per hidden layer works with or without biases but 
+is more likely to work with biases 
+%}
+
+%{
+Relationships in this XOR network with one hidden layer: 
+
+layer           input       hidden        output
+activation      a{1}         a{2}          a{3} to approx y 
+weight                W{1}         W{2} 
+bias                         B{1}          B{2}
+
+%}
 
 % FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
 % https://en.wikipedia.org/wiki/Gradient_descent 
 
-% THIS VERSION HAS A SINGLE BIAS FOR EACH INDIVIDUAL HIDDEN AND OUTPUT LAYER 
-
 % >>>> THERE ARE SEVERAL CODE SECTIONS BELOW <<<<<<<
 
-fprintf('------------ run separator ------------ \n')
+close all
 clear all 
-close all 
 clc
+fprintf('------------ run separator ------------ \n')
 
-numInputNodes = 4;
-numOutputNodes = 4;
-numHiddenNodes = 60; % nodes per hidden layer
-numHiddenLayers = 4;
+format shortG
+
+numInputNodes = 2;
+numOutputNodes = 1;
+numHiddenLayers = 1;
+numHiddenNodes = 3; % nodes per hidden layer, must be >= 1
 
 % Learning rate alpha 
 alpha = 0.01;
 % Lambda is for regularization 
 lambda = 0.001;
 % Num of iterations 
-numepochs = 1e4;
+numepochs = 1e5; % xxx was 1e5 
 % size of batches of inputs to train at same time
-batchsize = 4; % e.g., 4 for 4 random examples per batch
-
-% answers in order of train_y indices
-answer = ["none" "diagonal" "vertical" "horizontal"]; 
+batchsize = 4; % xxx was 4 for 4 random examples per batch
 
 %% Training 
 
 % training inputs
-train_x = [1 0 0 1 % diag
-           0 1 1 0 % diag
-           1 1 0 0 % vert
-           0 0 1 1 % vert
-           1 0 1 0 % horiz
-           0 1 0 1 % horiz
-           1 1 1 1 % all dots
-           0 0 0 0 % no dots
-           0 1 1 1 % start 3 dots
-           1 0 1 1
-           1 1 0 1
-           1 1 1 0
-           1 0 0 0 % start single dots 
-           0 1 0 0
-           0 0 1 0
-           0 0 0 1];
+train_x = [1 1
+           0 1
+           1 0
+           0 0];
 % put examples in columns
 train_x = train_x';
 
@@ -69,20 +71,12 @@ train_x = train_x';
 numbatches = floor( size(train_x, 2) / batchsize ); % need integer so floor
            
 % training outputs as array
-train_y = [0 1 0 0 % diag
-           0 1 0 0 % diag
-           0 0 1 0 % vert
-           0 0 1 0 % vert
-           0 0 0 1 % horiz
-           0 0 0 1]; % horiz
+train_y = [0
+           1
+           1
+           0];
 % put examples in columns
 train_y = train_y';
-% the rest of the output y's are the columns [1 0 0 0]'
-train_1 = ones(1,10);
-train_0 = zeros(3,10);
-train_10 = [train_1; train_0];
-% combine to full train_y
-train_y = [train_y train_10];
 
 % initialize node activations
 ai = zeros(numInputNodes,batchsize);
@@ -113,12 +107,17 @@ else
     return
 end
 
-% initialize biases
-% one scalar bias for each hidden layer plus one for output layer
-% see alternative code lines below for computing with and without biases
-for j = 1:numHiddenLayers+1
-    B{j} = 0;
+% intialize biases for each node 
+% EITHER all zeros
+% bh = zeros(numHiddenNodes,1); 
+% bo = zeros(numOutputNodes,1);
+% OR slightly off zero
+bh = 0.01 * ones(numHiddenNodes,1); 
+bo = 0.01 * ones(numOutputNodes,1);
+for j = 1:numHiddenLayers
+    b{j} = bh;
 end
+b{numHiddenLayers + 1} = bo;
 
 for j = 1 : numepochs
     % randomly rearrange the training data for each epoch
@@ -126,10 +125,10 @@ for j = 1 : numepochs
     % be matched together
     kk = randperm(size(train_x, 2)); 
 
-    for b = 1 : numbatches 
+    for batch = 1 : numbatches 
 
-        a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
-        y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
+        a{1} = train_x(:, kk( (batch-1)*batchsize+1 : batch*batchsize ) ); 
+        y = train_y(:, kk( (batch-1)*batchsize+1 : batch*batchsize ) );
         
         %{
         Note: when two or more matrices are put into one cell of a
@@ -140,19 +139,11 @@ for j = 1 : numepochs
                
         % Forward propagation
         
-        for j = 2 : numHiddenLayers + 2
-            % without biases B
-            % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-
-            % with biases B from Srihari 
-            % a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
-
-            % NEW with biases B 
-            % see help on bsxfun: 
-            %    In MATLAB® R2016b and later, you can directly use 
-            %    operators instead of bsxfun
-            a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1});
+        for j = 2 : numHiddenLayers + 2 
+            a{j} = sigmaFunc( W{j-1}*a{j-1} + b{j-1});
         end
+
+      % Back propagation 
               
         %{
         Start Back-Propagation in order to train network and
@@ -164,9 +155,9 @@ for j = 1 : numepochs
         layer           input      hidden        output
         activation      a{1}         a{2}          a{3} to approx y  
         weight                W{1}         W{2} 
+        bias                         B{1}          B{2}
 
         Error
-        
           j = numHiddenLayers+1
           E = 0.5 * ( y - a{j+1} ).^2
         
@@ -230,15 +221,16 @@ for j = 1 : numepochs
         for j = 1 : numHiddenLayers+1
             dE_dW{j} = dE_dI{j} * a{j}';
             % L2 regularization is used for W, which is the lambda * W term 
-            W{j} = W{j} - alpha * (dE_dW{j} - lambda * W{j}); 
+            W{j} = W{j} - alpha * (dE_dW{j} + lambda * W{j}); 
         end
 
         % update biases
         for i = 1 : numHiddenLayers+1
-            % B{i} = B{i} - alpha * sum(dE_dI{i},2); % from Srihari 
-            % Srihari's code creates a bias in layer for each input in batch
-            % but we want to keep bias a scalar for each layer 
-            B{i} = B{i} - alpha * mean(mean(dE_dI{i}));
+            % get mean along rows of each node's batch element results
+            % mean(x,2) operates along DIM 2 (across the columns), 
+            % producing mean of each row of x
+            % X(DIM 1, DIM 2) >> x(row, col)
+            b{i} = b{i} - alpha * mean(dE_dI{i},2);
         end
     end
 end
@@ -251,7 +243,6 @@ save('WS')
 % just loading same workspace but is useful
 % for re-using the weights W
 % when only running this or following sections
-
 clear all
 load('WS.mat')
 
@@ -263,115 +254,102 @@ for tn = 1:size(train_x, 2)
     
     a{1} = train_x(:,tn);
     x = a{1};
-    fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
+    fprintf('input: %i %i \n',x(1),x(2))
     for j = 2 : numHiddenLayers + 2
-        a{j} = sigmaFunc( W{j-1}*a{j-1} );
+        a{j} = sigmaFunc( W{j-1}*a{j-1} + b{j-1}); % with bias B
     end
     
     yex = a{numHiddenLayers + 2};
     [tMax tIex] = max(yex);
     
-    % see input above: answer = ["none" "diagonal" "vertical" "horizontal
     y = train_y(:,tn);
     [tMax tIans] = max(y);
     
-    if tIex == tIans
-        fprintf('answer is %s \n\n',answer(tIex))
+    if round(yex) == round(y)
+        fprintf('this answer is good %g \n',yex)
     else
-        fprintf('answer is %s >> ERROR \n\n',answer(tIex))
+        fprintf('this answer is BAD %g \n\n',yex)
         tsum = tsum + 1;
     end
     
 end
     
 if tsum == 0
-    fprintf('GOOD - no errors \n\n')
+    fprintf('ALL GOOD - no errors \n')
 else
-    fprintf('BAD - %i errors found \n\n', tsum)
+    fprintf('SOME BAD - %i errors found \n', tsum)
 end
 
 %% set an single input to image below 
 
-% tn 1,2 = diagonal, 3,4 = vertical, 5,6 = horizontal, others = none
+fprintf('----- one example for plotting -------- \n')
 
-tn = 2; % uses tn several places below, which single input to use
-
-% outputs are 1 = none, 2 = diagonal, 3 = vertical, 4 = horizontal 
+tn = 2; % uses tn several places below, which single input to use 
 
 a{1} = train_x(:,tn);
 x = a{1};
-fprintf('input: %i %i \n       %i %i \n',x(1),x(3),x(2),x(4))
+fprintf('input: %i %i \n',x(1),x(2))
 for j = 2 : numHiddenLayers + 2
-    a{j} = sigmaFunc( W{j-1}*a{j-1} );
+    a{j} = sigmaFunc( W{j-1}*a{j-1} + b{j-1}); % with bias B
 end
 
 yex = a{numHiddenLayers + 2};
 [tMax tIex] = max(yex);
 
-% see input above: answer = ["none" "diagonal" "vertical" "horizontal
 y = train_y(:,tn);
 [tMax tIans] = max(y);
 
-if tIex == tIans
-    fprintf('answer is %s \n\n',answer(tIex))
+fprintf('y is %g \n',y)
+fprintf('yex is %g \n',yex)
+
+if round(y) == round(yex)
+    fprintf('this answer is good \n')
 else
-    fprintf('answer is %s >> ERROR \n\n',answer(tIex))
-    tsum = tsum + 1;
+    fprintf('this answer is BAD \n')
 end
 
 % get max and min for biases
-maxim = -999;
-minim = 999;
+maxim = -9999;
+minim = 9999;
 for j = 1:numHiddenLayers+1
-    if B{j} > maxim
-        maxim = B{j};
-    end
-    if B{j} < minim
-        minim = B{j};
-    end
+        if max(b{j}) > maxim
+            maxim = max(b{j});
+        end
+        if min(b{j}) < minim
+            minim = min(b{j});
+        end
 end
-
 fprintf('----- biases -------- \n')
 fprintf('bias min = %g, bias max = %g \n',minim,maxim)
 
 %% imaging node activation values (a)
 
-fprintf('----- image node values -------- \n')
+fprintf('----- see image of node values -------- \n')
 % get min and max of entire set so can image
 % on same color scale
 % for node values with sigma function, range is 0-1
 % fprintf('activation min = %g, activation max = %g \n',minim,maxim)
-tt = ["INPUT" "layer 1" "layer 2" "layer 3" "layer 4" "OUTPUT"];
+tt = ["INPUT" "layer 1" "OUTPUT"];
 figure('Name','Node values', 'NumberTitle','off')
 for j = 1:numHiddenLayers+2
     im = a{j};
-    if j == 1
-        imbk = im;
-        im = [];
-        im = [imbk(1), imbk(3); imbk(2), imbk(4)]
-    end
-%     subplot(2,3,j), image(64*im), title(tt(j));
+    % subplot(2,3,j), image(64*im), title(tt(j));
     nhl = numHiddenLayers+2;
-    subplot(2,nhl,j), image(64*im), title(tt(j));
+    % subplot(2,nhl,j), image(64*im), title(tt(j));
+    subplot(2,nhl,j), image(64*im);
 end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black
 colormap(cm);
-% label output
-subplot(2,6,6)
-    text(1.55,1,'NONE')
-    text(1.55,2,'DIAG')
-	text(1.55,3,'VERT')
-	text(1.55,4,'HORIZ')
 
 %% imaging connection weights (W)
 
-fprintf('----- image connection weights -------- \n')
+fprintf('----- see image of connection weights -------- \n')
 % get min and max of entire set so can image
 % on same color scale
-maxim = -99;
-minim = 99;
-for j = 2:numHiddenLayers
+maxim = -999;
+minim = 999;
+for j = 2:numHiddenLayers+1
     tmaxim = max(max(W{j}));
     tminim = min(min(W{j}));
     if tmaxim > maxim
@@ -381,10 +359,10 @@ for j = 2:numHiddenLayers
         minim = tminim;
     end
 end
-t_min = minim
-t_max = maxim
+
+fprintf('weight min = %g, weight max = %g \n',minim,maxim)
+
 imspan = maxim-minim;
-% fprintf('weight min = %g, weight max = %g \n',minim,maxim)
 rcm = 64;
 % colormap(jet(rcm));
 figure('Name','Connection weights', 'NumberTitle','off')
@@ -397,3 +375,13 @@ end
 cm = colormap(gray(64));
 cm = flipud(cm); % change 0 to white, 1 to black
 colormap(cm);
+
+% for easy viewing in output, put final notice here 
+fprintf('----- SUMMARY ---------  \n')
+fprintf('hidden layers = %i, nodes per hidden layer = %i \n', numHiddenLayers, numHiddenNodes)
+if tsum == 0
+    fprintf('ALL GOOD - no errors \n')
+else
+    fprintf('SOME BAD - %i errors found \n', tsum)
+end
+

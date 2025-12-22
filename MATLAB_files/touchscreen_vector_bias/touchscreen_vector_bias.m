@@ -10,10 +10,6 @@
 % pp. 29-32 of Chap5.3-BackProp.pdf by Sargur Srihari 
 % lesson 5.3 of https://cedar.buffalo.edu/~srihari/CSE574/ 
 
-% with 4 hidden layers of 80 neurons each, usually get all good 
-% with 4 hidden layers of 60 neurons each, most of time get all good but
-% check
-
 % FOR GRADIENT DESCENT METHOD used in BACK PROPAGATION see 
 % https://en.wikipedia.org/wiki/Gradient_descent 
 
@@ -118,19 +114,21 @@ else
 end
 
 % intialize biases for each node 
-% initialize node activations
-
-% NOTE: random less successful than zeros 
-% Bh = 2*rand(numHiddenNodes,1) - 1;
-% Bo = 2*rand(numOutputNodes,1) - 1;
-
-Bh = zeros(numHiddenNodes,1); 
-Bo = zeros(numOutputNodes,1);
+% EITHER all zeros
+% bh = zeros(numHiddenNodes,1); 
+% bo = zeros(numOutputNodes,1);
+% OR slightly off zero
+bh = 0.01 * ones(numHiddenNodes,1); 
+bo = 0.01 * ones(numOutputNodes,1);
+for j = 1:numHiddenLayers
+    b{j} = bh;
+end
+b{numHiddenLayers + 1} = bo; 
 
 for j = 1:numHiddenLayers
-    B{j} = Bh;
+    b{j} = bh;
 end
-B{numHiddenLayers + 1} = Bo;
+b{numHiddenLayers + 1} = bo;
 
 for j = 1 : numepochs
     % randomly rearrange the training data for each epoch
@@ -138,10 +136,10 @@ for j = 1 : numepochs
     % be matched together
     kk = randperm(size(train_x, 2)); 
 
-    for b = 1 : numbatches 
+    for batch = 1 : numbatches 
 
-        a{1} = train_x(:, kk( (b-1)*batchsize+1 : b*batchsize ) ); 
-        y = train_y(:, kk( (b-1)*batchsize+1 : b*batchsize ) );
+        a{1} = train_x(:, kk( (batch-1)*batchsize+1 : batch*batchsize ) ); 
+        y = train_y(:, kk( (batch-1)*batchsize+1 : batch*batchsize ) );
         
         %{
         Note: when two or more matrices are put into one cell of a
@@ -153,17 +151,11 @@ for j = 1 : numepochs
         % Forward propagation
         
         for j = 2 : numHiddenLayers + 2
-            % without biases B
+            % without biases b
             % a{j} = sigmaFunc( W{j-1}*a{j-1} );
-
-            % with biases B from Srihari 
-            % a{j} = sigmaFunc(bsxfun( @plus, W{j-1}*a{j-1}, B{j-1} ) );
-
-            % NEW with biases B 
-            % see help on bsxfun: 
-            %    In MATLAB® R2016b and later, you can directly use 
-            %    operators instead of bsxfun
-            a{j} = sigmaFunc( W{j-1}*a{j-1} + B{j-1});
+            
+            % NEW with biases b 
+            a{j} = sigmaFunc( W{j-1}*a{j-1} + b{j-1});
         end
               
         %{
@@ -248,7 +240,10 @@ for j = 1 : numepochs
         % update biases
         for i = 1 : numHiddenLayers+1
             % get mean along rows of each node's batch element results
-            B{i} = B{i} - alpha * mean(dE_dI{i},2);
+            %   mean(x,2) operates along DIM 2 (across the columns), 
+            %   producing mean of each row of x
+            %   X(DIM 1, DIM 2) >> x(row, col)
+            b{i} = b{i} - alpha * mean(dE_dI{i},2);
         end
     end
 end
@@ -332,11 +327,11 @@ end
 maxim = -9999;
 minim = 9999;
 for j = 1:numHiddenLayers+1
-        if max(B{j}) > maxim
-            maxim = max(B{j});
+        if max(b{j}) > maxim
+            maxim = max(b{j});
         end
-        if min(B{j}) < minim
-            minim = min(B{j});
+        if min(b{j}) < minim
+            minim = min(b{j});
         end
 end
 fprintf('----- biases -------- \n')
