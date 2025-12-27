@@ -31,6 +31,9 @@ numOutputNodes = 4;
 % numHiddenNodes = 20; % nodes per hidden layer
 % numHiddenLayers = 3;
 
+% there are 16 different ways the 2x2 touchscreen can be configured,
+% see training inputs array below,
+% so seems like 1st hidden layer should have 16 nodes
 numHiddenNodes = 16; % nodes per hidden layer
 numHiddenLayers = 2;
 
