@@ -28,8 +28,11 @@ numOutputNodes = 4;
 % numHiddenNodes = 60; % nodes per hidden layer
 % numHiddenLayers = 4;
 
-numHiddenNodes = 20; % nodes per hidden layer
-numHiddenLayers = 3;
+% numHiddenNodes = 20; % nodes per hidden layer
+% numHiddenLayers = 3;
+
+numHiddenNodes = 16; % nodes per hidden layer
+numHiddenLayers = 2;
 
 % Learning rate alpha 
 alpha = 0.01;
