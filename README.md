@@ -7,4 +7,4 @@ Folders XOR_neural and touchscreen_2x2 have a single basis value for each hidden
 ---------
 ![nn-visualization-01-github](https://github.com/RichardHerz/neural-networks/blob/master/images_for_readme/nn_visualization.png) 
 ---------
-![nn-touchscreen-github](https://github.com/RichardHerz/neural-networks/blob/master/images_for_readme/nn_touchscreen.png) 
+![nn-touchscreen-github](https://github.com/RichardHerz/neural-networks/blob/master/images_for_readme/nn_touchscreen.jpg) 
